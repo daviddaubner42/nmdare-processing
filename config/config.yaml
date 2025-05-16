@@ -1,0 +1,5 @@
+rawdir: bids
+
+outdir: results
+
+resourcedir: resources

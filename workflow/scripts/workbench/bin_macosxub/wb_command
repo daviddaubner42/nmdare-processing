@@ -1,0 +1,16 @@
+#!/bin/sh
+
+#
+# Matlab's system() passes a messy library environment
+# remove the offending variables
+#
+unset DYLD_FRAMEWORK_PATH
+unset DYLD_LIBRARY_PATH
+
+#
+# Point to the actual application executable
+#
+directory=`dirname "$0"`
+export QT_PLUGIN_PATH="$directory"/../macosxub_apps/wb_command.app/Contents/PlugIns
+"$directory"/../macosxub_apps/wb_command.app/Contents/MacOS/wb_command "$@"
+exit $?
