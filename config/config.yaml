@@ -1,5 +1,7 @@
-rawdir: bids
+rawdir: /Users/brainsimulation/Desktop/nmdare-processing/bids
 
-outdir: results
+outdir: /Users/brainsimulation/Desktop/nmdare-processing/results
 
-resourcedir: resources
+resourcedir: /Users/brainsimulation/Desktop/nmdare-processing/resources
+
+workflowdir: /Users/brainsimulation/Desktop/nmdare-processing/workflow

@@ -47,7 +47,7 @@ parser.add_argument("out_dir", help="The directory where the output should be st
 args = parser.parse_args()
 
 ts_fname=args.ts_filename
-derivatives_dir=args.outdir
+derivatives_dir=args.out_dir
 sub=args.subid
 
 

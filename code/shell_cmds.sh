@@ -28,7 +28,7 @@ docker run -ti --rm \
     /data /out participant \
     --participant_label LEGK011 \
     --fs-license /opt/freesurfer/license.txt \
-    --fmriprep-args "--skip_bids_validation"
+    --fmriprep-args "--skip_bids_validation --n_cpus 10"
 
 mkdir ~/Desktop/nmdare-data-fmriprep/derivatives/wb_command
 

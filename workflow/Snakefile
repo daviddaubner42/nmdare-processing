@@ -7,34 +7,39 @@ report: "workflow.rst"
 endfiles = [
     os.path.join(
         config["outdir"],
-        "{subid}",
-        "{subid}_static_FC.csv"
-    ),
-    os.path.join(
+        "python",
+        "sub-{subid}",
+        "sub-{subid}_static_FC.csv"
+        ),
+        os.path.join(
         config["outdir"],
-        "{subid}",
-        "{subid}_FCD.csv"
-    ),
-    os.path.join(
+        "python",
+        "sub-{subid}",
+        "sub-{subid}_FCD.csv"
+        ),
+        os.path.join(
         config["outdir"],
-        "{subid}",
-        "{subid}_FCD_histogram_counts.csv"
-    ),
-    os.path.join(
+        "python",
+        "sub-{subid}",
+        "sub-{subid}_FCD_histogram_counts.csv"
+        ),
+        os.path.join(
         config["outdir"],
-        "{subid}",
+        "python",
+        "sub-{subid}",
         "figs",
-        "{subid}_FCD_histogram.png"
-    ),
-    os.path.join(
+        "sub-{subid}_FCD_histogram.png"
+        ),
+        os.path.join(
         config["outdir"],
         "wb_command",
-        "{subid}",
-        "{subid}_task-rest_boldmap.pconn.nii"
+        "sub-{subid}",
+        "sub-{subid}_task-rest_boldmap.pconn.nii"
     )
 ]
 
-subids = [i for i in os.listdir(config["rawdir"]) if i.startswith("sub-LE")]
+# subids = [i[4:] for i in os.listdir(config["rawdir"]) if i.startswith("sub-LE")]
+subids = ["LENMDA053"]
 
 rule all:
     """
@@ -52,64 +57,65 @@ rule fmriprep_ciftify:
     input:
         os.path.join(
             config["rawdir"],
-            "{subid}",
+            "sub-{subid}",
             "anat",
-            "{subid}_T1w.nii.gz"
+            "sub-{subid}_T1w.nii.gz"
         ),
         os.path.join(
             config["rawdir"],
-            "{subid}",
+            "sub-{subid}",
             "anat",
-            "{subid}_T2w.nii.gz"
+            "sub-{subid}_T2w.nii.gz"
         ),
         os.path.join(
             config["rawdir"],
-            "{subid}",
+            "sub-{subid}",
             "fmap",
-            "{subid}_magnitude1.nii.gz"
+            "sub-{subid}_magnitude1.nii.gz"
         ),
         os.path.join(
             config["rawdir"],
-            "{subid}",
+            "sub-{subid}",
             "fmap",
-            "{subid}_magnitude2.nii.gz"
+            "sub-{subid}_magnitude2.nii.gz"
         ),
         os.path.join(
             config["rawdir"],
-            "{subid}",
+            "sub-{subid}",
             "fmap",
-            "{subid}_phasediff.nii.gz"
+            "sub-{subid}_phasediff.nii.gz"
         ),
         os.path.join(
             config["rawdir"],
-            "{subid}",
+            "sub-{subid}",
             "func",
-            "{subid}_task-rest_bold.nii.gz"
+            "sub-{subid}_task-rest_bold.nii.gz"
         )
     params:
         bids_dir=config["rawdir"],
         out_dir=config["outdir"],
-        fs_license=os.path.join(
-            config["resourcedir"],
-            "license.txt"
-        )
+        fs_license_dir=config["resourcedir"],
+        n_cpus=32
     output:
         os.path.join(
             config["outdir"],
             "ciftify",
-            "{subid}",
+            "sub-{subid}",
             "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii"
         )
     shell:
         "docker run -ti --rm "
         "-v {params.bids_dir}:/data:ro "
         "-v {params.out_dir}:/out "
-        "-v {params.fs_license}:/opt/license.txt "
+        "-v {params.fs_license_dir}:/license_dir "
         "tigrlab/fmriprep_ciftify:v1.3.2-2.3.3 "
         "/data /out participant "
+        "--verbose "
+        "--rerun-if-incomplete "
         "--participant_label {wildcards.subid} "
-        "--fs-license /opt/freesurfer/license.txt "
-        "--fmriprep-args \"--skip_bids_validation --n_cpus 10\""
+        "--fs-license /license_dir/license.txt "
+        "--n_cpus {params.n_cpus} "
+        "--fmriprep-args \"--skip_bids_validation --n_cpus {params.n_cpus}\""
 
 rule ciftify_atlas:
     input:
@@ -120,7 +126,7 @@ rule ciftify_atlas:
         bold=os.path.join(
             config["outdir"],
             "ciftify",
-            "{subid}",
+            "sub-{subid}",
             "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii"
         )
     params:
@@ -128,31 +134,30 @@ rule ciftify_atlas:
             config["outdir"],
             "ciftify"
         ),
-        entrypoint="scripts/ciftify_entrypoint.sh"
+        entrypoint="scripts/ciftify_entrypoint.sh",
+        workflow_dir=config["workflowdir"]
     output:
         os.path.join(
             config["outdir"],
             "ciftify",
-            "{subid}",
-            "{subid}.aparc.dlabel.nii"
+            "sub-{subid}",
+            "sub-{subid}.aparc.dlabel.nii"
         )
-    conda:
-        "envs/wb_command_env.yml"
     shell:
         "docker run -ti --rm "
-        "-v ./:/workflow "
+        "-v {params.workflow_dir}:/workflow "
         "-v {input.atlas}:/opt/nifti_atlas.nii.gz "
         "-v {params.cifti_dir}:/ciftify "
         "--entrypoint /workflow/{params.entrypoint} "
         "tigrlab/fmriprep_ciftify:v1.3.2-2.3.3 "
-        "{wildcards.subid} "
+        "sub-{wildcards.subid} "
         "/opt/nifti_atlas.nii.gz "
-        "/ciftify/{wildcards.subid}/{wildcards.subid}.aparc.dscalar.nii "
+        "/ciftify/sub-{wildcards.subid}/sub-{wildcards.subid}.aparc.dscalar.nii "
         "--ciftify-work-dir /ciftify "
         "--integer-labels --resample-nifti && "
-        "scripts/workbench/bin_macosxub/wb_command -cifti-label-import "
-        "{params.cifti_dir}/{wildcards.subid}/{wildcards.subid}.aparc.dscalar.nii "
-        "\'\'"
+        "{params.workflow_dir}/scripts/workbench/bin_macosxub/wb_command -cifti-label-import "
+        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparc.dscalar.nii "
+        "\'\' "
         "{output}"
 
 rule extract_timeseries:
@@ -160,33 +165,32 @@ rule extract_timeseries:
         atlas=os.path.join(
             config["outdir"],
             "ciftify",
-            "{subid}",
-            "{subid}.aparc.dlabel.nii"
+            "sub-{subid}",
+            "sub-{subid}.aparc.dlabel.nii"
         ),
         bold=os.path.join(
             config["outdir"],
             "ciftify",
-            "{subid}",
+            "sub-{subid}",
             "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii"
         )
     params:
         resdir=os.path.join(
             config["outdir"],
             "wb_command",
-            "{subid}"
-        )
+            "sub-{subid}"
+        ),
+        workflow_dir=config["workflowdir"]
     output:
         os.path.join(
             config["outdir"],
             "wb_command",
-            "{subid}",
-            "{subid}_task-rest_timeseries.ptseries.nii"
+            "sub-{subid}",
+            "sub-{subid}_task-rest_timeseries.ptseries.nii"
         )
-    conda:
-        "envs/wb_command_env.yml"
     shell:
         "mkdir -p {params.resdir} && "
-        "scripts/workbench/bin_macosxub/wb_command -cifti-parcellate "
+        "{params.workflow_dir}/scripts/workbench/bin_macosxub/wb_command -cifti-parcellate "
         "{input.bold} {input.atlas} COLUMN "
         "{output}"
 
@@ -195,58 +199,63 @@ rule calculate_static_fc:
         os.path.join(
             config["outdir"],
             "wb_command",
-            "{subid}",
-            "{subid}_task-rest_timeseries.ptseries.nii"
+            "sub-{subid}",
+            "sub-{subid}_task-rest_timeseries.ptseries.nii"
         )
+    params:
+        workflow_dir=config["workflowdir"]
     output:
         os.path.join(
             config["outdir"],
             "wb_command",
-            "{subid}",
-            "{subid}_task-rest_boldmap.pconn.nii"
+            "sub-{subid}",
+            "sub-{subid}_task-rest_boldmap.pconn.nii"
         )
-    conda:
-        "envs/wb_command_env.yml"
     shell:
-        "scripts/workbench/bin_macosxub/wb_command -cifti-correlation {input} {output}"
+        "{params.workflow_dir}/scripts/workbench/bin_macosxub/wb_command -cifti-correlation {input} {output}"
 
 rule calculate_fcd:
     input:
         os.path.join(
             config["outdir"],
             "wb_command",
-            "{subid}",
-            "{subid}_task-rest_timeseries.ptseries.nii"
+            "sub-{subid}",
+            "sub-{subid}_task-rest_timeseries.ptseries.nii"
         )
     params:
         outdir=os.path.join(
             config["outdir"],
             "python"
-        )
+        ),
+        workflow_dir=config["workflowdir"]
     output:
         os.path.join(
             config["outdir"],
-            "{subid}",
-            "{subid}_static_FC.csv"
+            "python",
+            "sub-{subid}",
+            "sub-{subid}_static_FC.csv"
         ),
         os.path.join(
             config["outdir"],
-            "{subid}",
-            "{subid}_FCD.csv"
+            "python",
+            "sub-{subid}",
+            "sub-{subid}_FCD.csv"
         ),
         os.path.join(
             config["outdir"],
-            "{subid}",
-            "{subid}_FCD_histogram_counts.csv"
+            "python",
+            "sub-{subid}",
+            "sub-{subid}_FCD_histogram_counts.csv"
         ),
         os.path.join(
             config["outdir"],
-            "{subid}",
+            "python",
+            "sub-{subid}",
             "figs",
-            "{subid}_FCD_histogram.png"
+            "sub-{subid}_FCD_histogram.png"
         )
     shell:
-        "python scipts/fc_analysis.py {wildcards.subid} {input} {params.outdir}"
+        "python {params.workflow_dir}/scripts/fc_analysis.py sub-{wildcards.subid} {input} {params.outdir}"
     
 
 
