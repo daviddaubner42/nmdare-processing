@@ -39,7 +39,7 @@ endfiles = [
 ]
 
 # subids = [i[4:] for i in os.listdir(config["rawdir"]) if i.startswith("sub-LE")]
-subids = ["LENMDA053"]
+subids = ["LEGK012"]
 
 rule all:
     """
@@ -95,7 +95,7 @@ rule fmriprep_ciftify:
         bids_dir=config["rawdir"],
         out_dir=config["outdir"],
         fs_license_dir=config["resourcedir"],
-        n_cpus=32
+        n_cpus=8
     output:
         os.path.join(
             config["outdir"],
@@ -115,7 +115,7 @@ rule fmriprep_ciftify:
         "--participant_label {wildcards.subid} "
         "--fs-license /license_dir/license.txt "
         "--n_cpus {params.n_cpus} "
-        "--fmriprep-args \"--skip_bids_validation --n_cpus {params.n_cpus}\""
+        "--fmriprep-args \"--skip_bids_validation\""
 
 rule ciftify_atlas:
     input:
