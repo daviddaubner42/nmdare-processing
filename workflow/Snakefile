@@ -4,6 +4,9 @@ configfile: "config/config.yaml"
 
 report: "workflow.rst"
 
+# Create the results directory if it doesn't exist already
+os.makedirs(config["outdir"], exist_ok=True)
+
 endfiles = [
     os.path.join(
         config["outdir"],
@@ -38,8 +41,7 @@ endfiles = [
     )
 ]
 
-# subids = [i[4:] for i in os.listdir(config["rawdir"]) if i.startswith("sub-LE")]
-subids = ["LEGK012"]
+subids = [i[4:] for i in os.listdir(config["rawdir"]) if i.startswith("sub-LE")]
 
 rule all:
     """
