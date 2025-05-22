@@ -1,7 +1,11 @@
-rawdir: /Users/brainsimulation/Desktop/nmdare-processing/bids
+rawdir: /tmp/lima/bids
 
-outdir: /Users/brainsimulation/Desktop/nmdare-processing/results
+outdir: /tmp/lima/results
 
-resourcedir: /Users/brainsimulation/Desktop/nmdare-processing/resources
+resourcedir: /tmp/lima/resources
 
-workflowdir: /Users/brainsimulation/Desktop/nmdare-processing/workflow
+workflowdir: /tmp/lima/workflow
+
+containers:
+  ciftify: docker://tigrlab/fmriprep_ciftify:v1.3.2-2.3.3
+  wb_command: docker://khanlab/connectome-workbench:latest

@@ -4,8 +4,6 @@ configfile: "config/config.yaml"
 
 report: "workflow.rst"
 
-conda: "envs/environment.yaml"
-
 # Create the results directory if it doesn't exist already
 os.makedirs(config["outdir"], exist_ok=True)
 
@@ -43,8 +41,7 @@ endfiles = [
     )
 ]
 
-# subids = [i[4:] for i in os.listdir(config["rawdir"]) if i.startswith("sub-LE")]
-subids = ["LENMDA053"]
+subids = [i[4:] for i in os.listdir(config["rawdir"]) if i.startswith("sub-LE")]
 
 rule all:
     """
@@ -108,23 +105,19 @@ rule fmriprep_ciftify:
             "sub-{subid}",
             "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii"
         )
-    container:
-        config["containers"]["ciftify"]
     shell:
-        "fmriprep "
-        "{params.bids_dir} {params.out_dir} participant "
-        "--fs-license-file {params.fs_license_dir}/license.txt "
-        "--skip-bids-validation "
-        "--participant_label {wildcards.subid} && "
-        "ciftify_recon_all "
-        "--ciftify-work-dir {params.out_dir}/ciftify "
-        "--fs-subjects-dir {params.out_dir}/freesurfer "
-        "{wildcards.subid} && "
-        "ciftify_subject_fmri "
-        "--ciftify-work-dir {params.out_dir}/ciftify "
-        "{params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz "
-        "{wildcards.subid} "
-        "task-rest_desc-preproc"
+        "docker run -ti --rm "
+        "-v {params.bids_dir}:/data:ro "
+        "-v {params.out_dir}:/out "
+        "-v {params.fs_license_dir}:/license_dir "
+        "tigrlab/fmriprep_ciftify:v1.3.2-2.3.3 "
+        "/data /out participant "
+        "--verbose "
+        "--rerun-if-incomplete "
+        "--participant_label {wildcards.subid} "
+        "--fs-license /license_dir/license.txt "
+        "--n_cpus {params.n_cpus} "
+        "--fmriprep-args \"--skip_bids_validation\""
 
 rule ciftify_atlas:
     input:
@@ -150,22 +143,24 @@ rule ciftify_atlas:
             config["outdir"],
             "ciftify",
             "sub-{subid}",
-            "sub-{subid}.aparc.dscalar.nii"
-            # "sub-{subid}.aparc.dlabel.nii"
+            "sub-{subid}.aparc.dlabel.nii"
         )
-    container:
-        config["containers"]["ciftify"]
     shell:
-        "ciftify_vol_result "
+        "docker run -ti --rm "
+        "-v {params.workflow_dir}:/workflow "
+        "-v {input.atlas}:/opt/nifti_atlas.nii.gz "
+        "-v {params.cifti_dir}:/ciftify "
+        "--entrypoint /workflow/{params.entrypoint} "
+        "tigrlab/fmriprep_ciftify:v1.3.2-2.3.3 "
         "sub-{wildcards.subid} "
-        "{input.atlas} "
-        "{output} "
-        "--cifti-work-dir {params.cifti_dir} "
-        "--integer-labels --resample-nifti"
-        # "{params.workflow_dir}/scripts/workbench/bin_macosxub/wb_command -cifti-label-import "
-        # "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparc.dscalar.nii "
-        # "\'\' "
-        # "{output}"
+        "/opt/nifti_atlas.nii.gz "
+        "/ciftify/sub-{wildcards.subid}/sub-{wildcards.subid}.aparc.dscalar.nii "
+        "--ciftify-work-dir /ciftify "
+        "--integer-labels --resample-nifti && "
+        "{params.workflow_dir}/scripts/workbench/bin_macosxub/wb_command -cifti-label-import "
+        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparc.dscalar.nii "
+        "\'\' "
+        "{output}"
 
 rule extract_timeseries:
     input:
@@ -173,7 +168,7 @@ rule extract_timeseries:
             config["outdir"],
             "ciftify",
             "sub-{subid}",
-            "sub-{subid}.aparc.dscalar.nii"
+            "sub-{subid}.aparc.dlabel.nii"
         ),
         bold=os.path.join(
             config["outdir"],
@@ -187,11 +182,7 @@ rule extract_timeseries:
             "wb_command",
             "sub-{subid}"
         ),
-        workflow_dir=config["workflowdir"],
-        cifti_dir=os.path.join(
-            config["outdir"],
-            "ciftify"
-        )
+        workflow_dir=config["workflowdir"]
     output:
         os.path.join(
             config["outdir"],
@@ -199,23 +190,11 @@ rule extract_timeseries:
             "sub-{subid}",
             "sub-{subid}_task-rest_timeseries.ptseries.nii"
         )
-    container:
-        config["containers"]["wb_command"]
     shell:
         "mkdir -p {params.resdir} && "
-        "wb_command -cifti-label-import "
-        "{input.atlas} \'\' "
-        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparc.dlabel.nii && "
-        "wb_command -cifti-parcellate "
-        "{input.bold} "
-        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparc.dlabel.nii "
-        "COLUMN "
+        "{params.workflow_dir}/scripts/workbench/bin_macosxub/wb_command -cifti-parcellate "
+        "{input.bold} {input.atlas} COLUMN "
         "{output}"
-
-        # "mkdir -p {params.resdir} && "
-        # "{params.workflow_dir}/scripts/workbench/bin_macosxub/wb_command -cifti-parcellate "
-        # "{input.bold} {input.atlas} COLUMN "
-        # "{output}"
 
 rule calculate_static_fc:
     input:
@@ -234,10 +213,8 @@ rule calculate_static_fc:
             "sub-{subid}",
             "sub-{subid}_task-rest_boldmap.pconn.nii"
         )
-    container:
-        config["containers"]["wb_command"]
     shell:
-        "wb_command -cifti-correlation {input} {output}"
+        "{params.workflow_dir}/scripts/workbench/bin_macosxub/wb_command -cifti-correlation {input} {output}"
 
 rule calculate_fcd:
     input:

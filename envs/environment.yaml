@@ -1,0 +1,12 @@
+name: snake_env
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - snakemake
+  - pip
+  - nibabel
+  - nilearn
+  - numpy
+  - pandas
+  - matplotlib

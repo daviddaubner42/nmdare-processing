@@ -67,3 +67,18 @@ docker run -ti --rm \
     /ciftify/sub-LEGK011/sub-LEGK011.aparc.dscalar.nii \
     --ciftify-work-dir /ciftify \
     --integer-labels --resample-nifti
+
+# ------------------------------------------------------------------------------------
+
+singularity run --cleanenv \
+    -B /home/vagrant/bids:/data \
+    -B /home/vagrant/results:/out \
+    -B /home/vagrant/resources:/license_dir \
+    docker://tigrlab/fmriprep_ciftify:v1.3.2-2.3.3 \
+    /data /out participant \
+    --verbose \
+    --rerun-if-incomplete \
+    --participant_label=LEGK010 \
+    --n_cpus 8 \
+    --fs-license /license_dir/license.txt \
+    --fmriprep-args "--skip-bids-validation"
