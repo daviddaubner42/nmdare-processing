@@ -119,11 +119,12 @@ rule fmriprep_ciftify:
         "ciftify_recon_all "
         "--ciftify-work-dir {params.out_dir}/ciftify "
         "--fs-subjects-dir {params.out_dir}/freesurfer "
-        "{wildcards.subid} && "
+        "--fs-license {params.fs_license_dir}/license.txt "
+        "sub-{wildcards.subid} && "
         "ciftify_subject_fmri "
         "--ciftify-work-dir {params.out_dir}/ciftify "
         "{params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz "
-        "{wildcards.subid} "
+        "sub-{wildcards.subid} "
         "task-rest_desc-preproc"
 
 rule ciftify_atlas:
@@ -160,7 +161,7 @@ rule ciftify_atlas:
         "sub-{wildcards.subid} "
         "{input.atlas} "
         "{output} "
-        "--cifti-work-dir {params.cifti_dir} "
+        "--ciftify-work-dir {params.cifti_dir} "
         "--integer-labels --resample-nifti"
         # "{params.workflow_dir}/scripts/workbench/bin_macosxub/wb_command -cifti-label-import "
         # "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparc.dscalar.nii "
