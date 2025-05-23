@@ -1,10 +1,11 @@
-rawdir: /tmp/lima/bids
+rawdir: /Users/brainsimulation/Desktop/nmdare-processing/bids
 
-outdir: /tmp/lima/results
+outdir: /Users/brainsimulation/Desktop/nmdare-processing/results
 
-resourcedir: /tmp/lima/resources
+resourcedir: /Users/brainsimulation/Desktop/nmdare-processing/resources
 
-workflowdir: /tmp/lima/workflow
+workflowdir: /Users/brainsimulation/Desktop/nmdare-processing/workflow
+
 
 containers:
   ciftify: docker://tigrlab/fmriprep_ciftify:v1.3.2-2.3.3

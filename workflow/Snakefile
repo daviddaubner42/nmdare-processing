@@ -4,7 +4,7 @@ configfile: "config/config.yaml"
 
 report: "workflow.rst"
 
-conda: "envs/environment.yaml"
+conda: "../envs/environment.yaml"
 
 # Create the results directory if it doesn't exist already
 os.makedirs(config["outdir"], exist_ok=True)
