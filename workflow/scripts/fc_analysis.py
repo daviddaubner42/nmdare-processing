@@ -56,7 +56,7 @@ os.makedirs(os.path.join(derivatives_dir, sub, "figs"), exist_ok=True)
 time_series = nib.load(ts_fname).dataobj
 
 static_fc = fc_matrix(time_series)
-pd.DataFrame(static_fc).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_static_fc.csv"))
+pd.DataFrame(static_fc).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_static_FC.csv"))
 
 window_size = 40
 window_step = 5

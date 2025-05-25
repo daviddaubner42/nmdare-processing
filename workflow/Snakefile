@@ -4,7 +4,7 @@ configfile: "config/config.yaml"
 
 report: "workflow.rst"
 
-conda: "../envs/environment.yaml"
+# conda: "envs/environment.yaml"
 
 # Create the results directory if it doesn't exist already
 os.makedirs(config["outdir"], exist_ok=True)
@@ -44,7 +44,7 @@ endfiles = [
 ]
 
 # subids = [i[4:] for i in os.listdir(config["rawdir"]) if i.startswith("sub-LE")]
-subids = ["LENMDA053"]
+subids = ["LEGK015", "LENMDA008"]
 
 rule all:
     """
@@ -56,9 +56,7 @@ rule all:
             subid=subids
         ),
 
-
-rule fmriprep_ciftify:
-    """Applies the fmriprep and ciftify pipelines to the data"""
+rule fmriprep:
     input:
         os.path.join(
             config["rawdir"],
@@ -104,6 +102,86 @@ rule fmriprep_ciftify:
     output:
         os.path.join(
             config["outdir"],
+            "freesurfer",
+            "sub-{subid}",
+            "surf",
+            "rh.midthickness"
+        ),
+        os.path.join(
+            config["outdir"],
+            "fmriprep",
+            "sub-{subid}",
+            "func",
+            "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
+        )
+    container:
+        config["containers"]["ciftify"]
+    shell:
+        "rm -rf {params.out_dir}/freesurfer/sub-{wildcards.subid} && "
+        "fmriprep "
+        "{params.bids_dir} {params.out_dir} participant "
+        "--fs-license-file {params.fs_license_dir}/license.txt "
+        "--skip-bids-validation "
+        "--participant_label {wildcards.subid}"
+
+rule ciftify_recon_all:
+    input:
+        os.path.join(
+            config["outdir"],
+            "freesurfer",
+            "sub-{subid}",
+            "surf",
+            "rh.midthickness"
+        )
+    params:
+        bids_dir=config["rawdir"],
+        out_dir=config["outdir"],
+        fs_license_dir=config["resourcedir"],
+        n_cpus=8
+    output:
+        os.path.join(
+            config["outdir"],
+            "ciftify",
+            "sub-{subid}",
+            "MNINonLinear",
+            "fsaverage_LR32k",
+            "sub-{subid}.aparc.32k_fs_LR.dlabel.nii"
+        )
+    container:
+        config["containers"]["ciftify"]
+    shell:
+        "rm -rf {params.out_dir}/ciftify/sub-{wildcards.subid} && "
+        "ciftify_recon_all "
+        "--ciftify-work-dir {params.out_dir}/ciftify "
+        "--fs-subjects-dir {params.out_dir}/freesurfer "
+        "--fs-license {params.fs_license_dir}/license.txt "
+        "sub-{wildcards.subid}"
+
+rule ciftify_subject_fmri:
+    input:
+        os.path.join(
+            config["outdir"],
+            "ciftify",
+            "sub-{subid}",
+            "MNINonLinear",
+            "fsaverage_LR32k",
+            "sub-{subid}.aparc.32k_fs_LR.dlabel.nii"
+        ),
+        os.path.join(
+            config["outdir"],
+            "fmriprep",
+            "sub-{subid}",
+            "func",
+            "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
+        )
+    params:
+        bids_dir=config["rawdir"],
+        out_dir=config["outdir"],
+        fs_license_dir=config["resourcedir"],
+        n_cpus=8
+    output:
+        os.path.join(
+            config["outdir"],
             "ciftify",
             "sub-{subid}",
             "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii"
@@ -111,16 +189,6 @@ rule fmriprep_ciftify:
     container:
         config["containers"]["ciftify"]
     shell:
-        "fmriprep "
-        "{params.bids_dir} {params.out_dir} participant "
-        "--fs-license-file {params.fs_license_dir}/license.txt "
-        "--skip-bids-validation "
-        "--participant_label {wildcards.subid} && "
-        "ciftify_recon_all "
-        "--ciftify-work-dir {params.out_dir}/ciftify "
-        "--fs-subjects-dir {params.out_dir}/freesurfer "
-        "--fs-license {params.fs_license_dir}/license.txt "
-        "sub-{wildcards.subid} && "
         "ciftify_subject_fmri "
         "--ciftify-work-dir {params.out_dir}/ciftify "
         "{params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz "
@@ -280,6 +348,8 @@ rule calculate_fcd:
             "figs",
             "sub-{subid}_FCD_histogram.png"
         )
+    conda:
+        "envs/environment.yaml"
     shell:
         "python {params.workflow_dir}/scripts/fc_analysis.py sub-{wildcards.subid} {input} {params.outdir}"
     

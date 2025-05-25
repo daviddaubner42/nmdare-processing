@@ -1,10 +1,10 @@
-rawdir: /Users/brainsimulation/Desktop/nmdare-processing/bids
+rawdir: /home/david-daubner/Desktop/nmdare-processing/bids
 
-outdir: /Users/brainsimulation/Desktop/nmdare-processing/results
+outdir: /home/david-daubner/Desktop/nmdare-processing/results
 
-resourcedir: /Users/brainsimulation/Desktop/nmdare-processing/resources
+resourcedir: /home/david-daubner/Desktop/nmdare-processing/resources
 
-workflowdir: /Users/brainsimulation/Desktop/nmdare-processing/workflow
+workflowdir: /home/david-daubner/Desktop/nmdare-processing/workflow
 
 
 containers:
