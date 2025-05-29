@@ -43,8 +43,8 @@ endfiles = [
     )
 ]
 
-# subids = [i[4:] for i in os.listdir(config["rawdir"]) if i.startswith("sub-LE")]
-subids = ["LEGK015", "LENMDA008"]
+subids = [i[4:] for i in os.listdir(config["rawdir"]) if i.startswith("sub-")]
+# subids = ["RSGK003", "PROBANDRS002"]
 
 rule all:
     """
