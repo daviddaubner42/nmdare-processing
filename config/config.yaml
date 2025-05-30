@@ -1,6 +1,6 @@
 
-datadir:
-rootdir:
+datadir: /Volumes/KINGSTON/bids-complete
+rootdir: /Users/leonmartin_bih/projects/NMDARE/nmdare-processing
 
 containers:
   ciftify: docker://tigrlab/fmriprep_ciftify:v1.3.2-2.3.3

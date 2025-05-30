@@ -10,8 +10,8 @@ report: "workflow.rst"
 
 # conda: "envs/environment.yaml"
 
-rawdir = join(config["datadir"], "bids")
-outdir = join(config["datadir"], "results")
+rawdir = join(config["datadir"])
+outdir = join(config["datadir"], "derivatives")
 
 resourcedir = join(config["rootdir"], "resources")
 workflowdir = join(config["rootdir"], "workflow")
