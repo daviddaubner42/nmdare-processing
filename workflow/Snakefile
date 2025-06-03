@@ -4,8 +4,6 @@ configfile: "config/config.yaml"
 
 report: "workflow.rst"
 
-# conda: "envs/environment.yaml"
-
 # Create the results directory if it doesn't exist already
 os.makedirs(config["outdir"], exist_ok=True)
 
@@ -43,8 +41,8 @@ endfiles = [
     )
 ]
 
-subids = [i[4:] for i in os.listdir(config["rawdir"]) if i.startswith("sub-")]
-# subids = ["RSGK003", "PROBANDRS002"]
+# subids = [i[4:] for i in os.listdir(config["rawdir"]) if i.startswith("sub-")]
+subids = ["LEGK011"]
 
 rule all:
     """
@@ -113,6 +111,13 @@ rule fmriprep:
             "sub-{subid}",
             "func",
             "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
+        ),
+        os.path.join(
+            config["outdir"],
+            "freesurfer",
+            "sub-{subid}",
+            "mri",
+            "aparc+aseg.mgz"
         )
     container:
         config["containers"]["ciftify"]
@@ -195,11 +200,41 @@ rule ciftify_subject_fmri:
         "sub-{wildcards.subid} "
         "task-rest_desc-preproc"
 
+rule niftify_freesurfer_parcellation:
+    input:
+        os.path.join(
+            config["outdir"],
+            "freesurfer",
+            "sub-{subid}",
+            "mri",
+            "aparc+aseg.mgz"
+        )
+    params:
+        resdir=os.path.join(
+            config["outdir"],
+            "wb_command",
+            "sub-{subid}"
+        )
+    output:
+        os.path.join(
+            config["outdir"],
+            "wb_command",
+            "sub-{subid}",
+            "aparc+aseg.nii.gz"
+        )
+    container:
+        config["containers"]["freesurfer"]
+    shell:
+        "mkdir -p {params.resdir} && "
+        "mri_convert {input} {output}"
+
 rule ciftify_atlas:
     input:
         atlas=os.path.join(
-            config["resourcedir"],
-            "tpl-MNI152Nlin2009c_atlas-DesikanKilliany_desc-ranked_dseg.nii.gz"
+            config["outdir"],
+            "wb_command",
+            "sub-{subid}",
+            "aparc+aseg.nii.gz"
         ),
         bold=os.path.join(
             config["outdir"],
@@ -220,7 +255,6 @@ rule ciftify_atlas:
             "ciftify",
             "sub-{subid}",
             "sub-{subid}.aparc.dscalar.nii"
-            # "sub-{subid}.aparc.dlabel.nii"
         )
     container:
         config["containers"]["ciftify"]
@@ -231,10 +265,6 @@ rule ciftify_atlas:
         "{output} "
         "--ciftify-work-dir {params.cifti_dir} "
         "--integer-labels --resample-nifti"
-        # "{params.workflow_dir}/scripts/workbench/bin_macosxub/wb_command -cifti-label-import "
-        # "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparc.dscalar.nii "
-        # "\'\' "
-        # "{output}"
 
 rule extract_timeseries:
     input:
