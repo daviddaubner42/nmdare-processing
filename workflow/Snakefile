@@ -42,7 +42,7 @@ endfiles = [
 ]
 
 # subids = [i[4:] for i in os.listdir(config["rawdir"]) if i.startswith("sub-")]
-subids = ["LEGK011"]
+subids = ["LENMDA011"]
 
 rule all:
     """
@@ -95,15 +95,14 @@ rule fmriprep:
     params:
         bids_dir=config["rawdir"],
         out_dir=config["outdir"],
-        fs_license_dir=config["resourcedir"],
-        n_cpus=8
+        fs_license_dir=config["resourcedir"]
     output:
         os.path.join(
             config["outdir"],
             "freesurfer",
             "sub-{subid}",
             "surf",
-            "rh.midthickness"
+            "rh.thickness"
         ),
         os.path.join(
             config["outdir"],
@@ -120,14 +119,19 @@ rule fmriprep:
             "aparc+aseg.mgz"
         )
     container:
-        config["containers"]["ciftify"]
+        config["containers"]["fmriprep"]
     shell:
         "rm -rf {params.out_dir}/freesurfer/sub-{wildcards.subid} && "
         "fmriprep "
         "{params.bids_dir} {params.out_dir} participant "
         "--fs-license-file {params.fs_license_dir}/license.txt "
         "--skip-bids-validation "
-        "--participant_label {wildcards.subid}"
+        "--participant_label {wildcards.subid} "
+        "--output-spaces MNI152NLin2009cAsym:res-2 fsLR "
+        "--skip-bids-validation "
+        "--nthreads 16 "
+        "--omp-nthreads 16 "
+        "--output-layout legacy"
 
 rule ciftify_recon_all:
     input:
@@ -136,7 +140,7 @@ rule ciftify_recon_all:
             "freesurfer",
             "sub-{subid}",
             "surf",
-            "rh.midthickness"
+            "rh.thickness"
         )
     params:
         bids_dir=config["rawdir"],
@@ -177,7 +181,7 @@ rule ciftify_subject_fmri:
             "fmriprep",
             "sub-{subid}",
             "func",
-            "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
+            "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold.nii.gz"
         )
     params:
         bids_dir=config["rawdir"],

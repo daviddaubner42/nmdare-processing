@@ -8,6 +8,7 @@ workflowdir: /home/david-daubner/Desktop/NMDARE/nmdare-processing/workflow
 
 
 containers:
+  fmriprep: docker://nipreps/fmriprep:latest
   ciftify: docker://tigrlab/fmriprep_ciftify:v1.3.2-2.3.3
   wb_command: docker://khanlab/connectome-workbench:latest
   freesurfer: docker://freesurfer/freesurfer:7.2.0
