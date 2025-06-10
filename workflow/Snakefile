@@ -36,7 +36,7 @@ endfiles = [
 ]
 
 subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-")]
-# subids = ["RSGK003", "PROBANDRS002"]
+# subids = ["LEUNKNOWN111"]
 
 
 rule all:
@@ -61,9 +61,9 @@ rule fmriprep:
             "sub-{subid}_task-rest_bold.nii.gz"
         )
     params:
-        bids_dir=config["rawdir"],
-        out_dir=config["outdir"],
-        fs_license_dir=config["resourcedir"]
+        bids_dir=rawdir,
+        out_dir=outdir,
+        fs_license_dir=resourcedir
     output:
         os.path.join(
             outdir,
