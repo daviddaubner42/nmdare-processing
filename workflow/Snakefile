@@ -42,7 +42,7 @@ endfiles = [
 ]
 
 # subids = [i[4:] for i in os.listdir(config["rawdir"]) if i.startswith("sub-")]
-subids = ["LENMDA011"]
+subids = ["RSGK003"]
 
 rule all:
     """
@@ -131,7 +131,8 @@ rule fmriprep:
         "--skip-bids-validation "
         "--nthreads 16 "
         "--omp-nthreads 16 "
-        "--output-layout legacy"
+        "--output-layout legacy && "
+        "mv {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold.nii.gz {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
 
 rule ciftify_recon_all:
     input:
@@ -181,7 +182,7 @@ rule ciftify_subject_fmri:
             "fmriprep",
             "sub-{subid}",
             "func",
-            "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold.nii.gz"
+            "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
         )
     params:
         bids_dir=config["rawdir"],
@@ -258,7 +259,7 @@ rule ciftify_atlas:
             config["outdir"],
             "ciftify",
             "sub-{subid}",
-            "sub-{subid}.aparc.dscalar.nii"
+            "sub-{subid}.aparcaseg.dscalar.nii"
         )
     container:
         config["containers"]["ciftify"]
@@ -276,7 +277,7 @@ rule extract_timeseries:
             config["outdir"],
             "ciftify",
             "sub-{subid}",
-            "sub-{subid}.aparc.dscalar.nii"
+            "sub-{subid}.aparcaseg.dscalar.nii"
         ),
         bold=os.path.join(
             config["outdir"],
@@ -308,10 +309,10 @@ rule extract_timeseries:
         "mkdir -p {params.resdir} && "
         "wb_command -cifti-label-import "
         "{input.atlas} \'\' "
-        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparc.dlabel.nii && "
+        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dlabel.nii && "
         "wb_command -cifti-parcellate "
         "{input.bold} "
-        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparc.dlabel.nii "
+        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dlabel.nii "
         "COLUMN "
         "{output}"
 
