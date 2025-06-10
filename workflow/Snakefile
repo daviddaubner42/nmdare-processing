@@ -42,7 +42,7 @@ endfiles = [
 ]
 
 # subids = [i[4:] for i in os.listdir(config["rawdir"]) if i.startswith("sub-")]
-subids = ["RSGK003"]
+subids = ["LENMDA002"]
 
 rule all:
     """
@@ -156,6 +156,13 @@ rule ciftify_recon_all:
             "MNINonLinear",
             "fsaverage_LR32k",
             "sub-{subid}.aparc.32k_fs_LR.dlabel.nii"
+        ),
+        os.path.join(
+            config["outdir"],
+            "ciftify",
+            "sub-{subid}",
+            "MNINonLinear",
+            "aparc+aseg.nii.gz"
         )
     container:
         config["containers"]["ciftify"]
@@ -205,40 +212,13 @@ rule ciftify_subject_fmri:
         "sub-{wildcards.subid} "
         "task-rest_desc-preproc"
 
-rule niftify_freesurfer_parcellation:
-    input:
-        os.path.join(
-            config["outdir"],
-            "freesurfer",
-            "sub-{subid}",
-            "mri",
-            "aparc+aseg.mgz"
-        )
-    params:
-        resdir=os.path.join(
-            config["outdir"],
-            "wb_command",
-            "sub-{subid}"
-        )
-    output:
-        os.path.join(
-            config["outdir"],
-            "wb_command",
-            "sub-{subid}",
-            "aparc+aseg.nii.gz"
-        )
-    container:
-        config["containers"]["freesurfer"]
-    shell:
-        "mkdir -p {params.resdir} && "
-        "mri_convert {input} {output}"
-
 rule ciftify_atlas:
     input:
         atlas=os.path.join(
             config["outdir"],
-            "wb_command",
+            "ciftify",
             "sub-{subid}",
+            "MNINonLinear",
             "aparc+aseg.nii.gz"
         ),
         bold=os.path.join(
@@ -315,11 +295,6 @@ rule extract_timeseries:
         "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dlabel.nii "
         "COLUMN "
         "{output}"
-
-        # "mkdir -p {params.resdir} && "
-        # "{params.workflow_dir}/scripts/workbench/bin_macosxub/wb_command -cifti-parcellate "
-        # "{input.bold} {input.atlas} COLUMN "
-        # "{output}"
 
 rule calculate_static_fc:
     input:
