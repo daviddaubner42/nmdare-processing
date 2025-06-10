@@ -1,11 +1,5 @@
-rawdir: /home/david-daubner/Desktop/NMDARE/bids
-
-outdir: /home/david-daubner/Desktop/NMDARE/results
-
-resourcedir: /home/david-daubner/Desktop/NMDARE/nmdare-processing/resources
-
-workflowdir: /home/david-daubner/Desktop/NMDARE/nmdare-processing/workflow
-
+datadir: /Volumes/KINGSTON/bids-complete
+rootdir: /Users/leonmartin_bih/projects/NMDARE/nmdare-processing
 
 containers:
   fmriprep: docker://nipreps/fmriprep:latest
