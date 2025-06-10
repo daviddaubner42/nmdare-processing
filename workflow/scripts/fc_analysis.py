@@ -55,8 +55,17 @@ os.makedirs(os.path.join(derivatives_dir, sub, "figs"), exist_ok=True)
 
 time_series = nib.load(ts_fname).dataobj
 
+# Truncate the first few volumes
+
 static_fc = fc_matrix(time_series)
-pd.DataFrame(static_fc).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_static_FC.csv"))
+pd.DataFrame(static_fc).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_static_FC.csv"), index=False)
+
+plt.imshow(static_fc, cmap='viridis')
+plt.colorbar(label='Correlation')
+plt.title(f'Static FC Matrix: {sub}')
+plt.tight_layout()
+plt.savefig(os.path.join(derivatives_dir, sub, "figs", f"{sub}_static_FC.png"))
+plt.close()
 
 window_size = 40
 window_step = 5
@@ -76,10 +85,17 @@ for i in range(n_fcs):
     for j in range(n_fcs):
         FCD[i, j] = FCuCorrelation(all_fcs[i], all_fcs[j])
 
-pd.DataFrame(FCD).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_FCD.csv"))
+pd.DataFrame(FCD).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_FCD.csv"), index=False)
+
+plt.imshow(FCD, cmap='viridis')
+plt.colorbar(label='Correlation')
+plt.title(f'FCD Matrix: {sub}')
+plt.tight_layout()
+plt.savefig(os.path.join(derivatives_dir, sub, "figs", f"{sub}_FCD.png"))
+plt.close()
 
 fcd_flattened = FCD.flatten()
 hist = plt.hist(fcd_flattened, bins=100, range=(0, 1))
 plt.savefig(os.path.join(derivatives_dir, sub, "figs", f"{sub}_FCD_histogram.png"))
 bin_counts = hist[0]
-pd.DataFrame(bin_counts).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_FCD_histogram_counts.csv"))
+pd.DataFrame(bin_counts).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_FCD_histogram_counts.csv"), index=False)

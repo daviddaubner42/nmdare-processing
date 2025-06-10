@@ -58,36 +58,54 @@ rule fmriprep:
             rawdir,
             "sub-{subid}",
             "func",
-            "sub-{subid}_task-rest_bold.nii.gz",
-        ),
+            "sub-{subid}_task-rest_bold.nii.gz"
+        )
     params:
-        bids_dir=rawdir,
-        out_dir=outdir,
-        fs_license_dir=resourcedir,
-        n_cpus=8,
+        bids_dir=config["rawdir"],
+        out_dir=config["outdir"],
+        fs_license_dir=config["resourcedir"]
     output:
-        os.path.join(outdir, "freesurfer", "sub-{subid}", "surf", "rh.midthickness"),
+        os.path.join(
+            outdir,
+            "freesurfer",
+            "sub-{subid}",
+            "surf",
+            "rh.thickness"
+        ),
         os.path.join(
             outdir,
             "fmriprep",
             "sub-{subid}",
             "func",
-            "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz",
+            "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
         ),
+        os.path.join(
+            outdir,
+            "freesurfer",
+            "sub-{subid}",
+            "mri",
+            "aparc+aseg.mgz"
+        )
     container:
-        config["containers"]["ciftify"]
+        config["containers"]["fmriprep"]
     shell:
         "rm -rf {params.out_dir}/freesurfer/sub-{wildcards.subid} && "
         "fmriprep "
         "{params.bids_dir} {params.out_dir} participant "
         "--fs-license-file {params.fs_license_dir}/license.txt "
         "--skip-bids-validation "
-        "--participant_label {wildcards.subid}"
+        "--participant_label {wildcards.subid} "
+        "--output-spaces MNI152NLin2009cAsym:res-2 fsLR "
+        "--skip-bids-validation "
+        "--nthreads 16 "
+        "--omp-nthreads 16 "
+        "--output-layout legacy && "
+        "mv {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold.nii.gz {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
 
 
 rule ciftify_recon_all:
     input:
-        os.path.join(outdir, "freesurfer", "sub-{subid}", "surf", "rh.midthickness"),
+        os.path.join(outdir, "freesurfer", "sub-{subid}", "surf", "rh.thickness"),
     params:
         bids_dir=rawdir,
         out_dir=outdir,
@@ -100,8 +118,15 @@ rule ciftify_recon_all:
             "sub-{subid}",
             "MNINonLinear",
             "fsaverage_LR32k",
-            "sub-{subid}.aparc.32k_fs_LR.dlabel.nii",
+            "sub-{subid}.aparc.32k_fs_LR.dlabel.nii"
         ),
+        os.path.join(
+            outdir,
+            "ciftify",
+            "sub-{subid}",
+            "MNINonLinear",
+            "aparc+aseg.nii.gz"
+        )
     container:
         config["containers"]["ciftify"]
     shell:
@@ -134,7 +159,6 @@ rule ciftify_subject_fmri:
         bids_dir=rawdir,
         out_dir=outdir,
         fs_license_dir=resourcedir,
-        n_cpus=8,
     output:
         os.path.join(
             outdir,
@@ -155,8 +179,11 @@ rule ciftify_subject_fmri:
 rule ciftify_atlas:
     input:
         atlas=os.path.join(
-            resourcedir,
-            "tpl-MNI152Nlin2009c_atlas-DesikanKilliany_desc-ranked_dseg.nii.gz",
+            outdir,
+            "ciftify",
+            "sub-{subid}",
+            "MNINonLinear",
+            "aparc+aseg.nii.gz"
         ),
         bold=os.path.join(
             outdir,
@@ -166,10 +193,14 @@ rule ciftify_atlas:
         ),
     params:
         cifti_dir=os.path.join(outdir, "ciftify"),
-        entrypoint="scripts/ciftify_entrypoint.sh",
         workflow_dir=workflowdir,
     output:
-        os.path.join(outdir, "ciftify", "sub-{subid}", "sub-{subid}.aparc.dscalar.nii"),
+        os.path.join(
+            outdir,
+            "ciftify",
+            "sub-{subid}",
+            "sub-{subid}.aparcaseg.dscalar.nii"
+        )
     container:
         config["containers"]["ciftify"]
     shell:
@@ -179,16 +210,15 @@ rule ciftify_atlas:
         "{output} "
         "--ciftify-work-dir {params.cifti_dir} "
         "--integer-labels --resample-nifti"
-        # "{params.workflow_dir}/scripts/workbench/bin_macosxub/wb_command -cifti-label-import "
-        # "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparc.dscalar.nii "
-        # "\'\' "
-        # "{output}"
 
 
 rule extract_timeseries:
     input:
         atlas=os.path.join(
-            outdir, "ciftify", "sub-{subid}", "sub-{subid}.aparc.dscalar.nii"
+            outdir,
+            "ciftify",
+            "sub-{subid}",
+            "sub-{subid}.aparcaseg.dscalar.nii"
         ),
         bold=os.path.join(
             outdir,
@@ -213,17 +243,12 @@ rule extract_timeseries:
         "mkdir -p {params.resdir} && "
         "wb_command -cifti-label-import "
         "{input.atlas} '' "
-        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparc.dlabel.nii && "
+        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dlabel.nii && "
         "wb_command -cifti-parcellate "
         "{input.bold} "
-        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparc.dlabel.nii "
+        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dlabel.nii "
         "COLUMN "
         "{output}"
-        # "mkdir -p {params.resdir} && "
-        # "{params.workflow_dir}/scripts/workbench/bin_macosxub/wb_command -cifti-parcellate "
-        # "{input.bold} {input.atlas} COLUMN "
-        # "{output}"
-
 
 rule calculate_static_fc:
     input:
