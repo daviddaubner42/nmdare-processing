@@ -35,8 +35,8 @@ endfiles = [
     ),
 ]
 
-subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-")]
-# subids = ["LEUNKNOWN111"]
+# subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-")]
+subids = ["LENMDA002"]
 
 
 rule all:
@@ -78,13 +78,6 @@ rule fmriprep:
             "sub-{subid}",
             "func",
             "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
-        ),
-        os.path.join(
-            outdir,
-            "freesurfer",
-            "sub-{subid}",
-            "mri",
-            "aparc+aseg.mgz"
         )
     container:
         config["containers"]["fmriprep"]
