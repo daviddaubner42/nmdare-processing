@@ -1,7 +1,6 @@
-datadir: /Users/brainsimulation/Desktop/NMDARE/bids
-rootdir: /Users/brainsimulation/Desktop/NMDARE/nmdare-processing
+datadir: /home/david-daubner/Desktop/NMDARE/bids
+rootdir: /home/david-daubner/Desktop/NMDARE/nmdare-processing
 
 containers:
   fmriprep: docker://nipreps/fmriprep:latest
-  ciftify: docker://tigrlab/fmriprep_ciftify:v1.3.2-2.3.3
-  wb_command: docker://khanlab/connectome-workbench:latest
+  xcp_d: docker://pennlinc/xcp_d:latest

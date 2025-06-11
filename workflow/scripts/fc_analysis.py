@@ -58,6 +58,8 @@ time_series = nib.load(ts_fname).dataobj
 # Truncate the first few volumes
 
 static_fc = fc_matrix(time_series)
+static_fc = np.delete(static_fc, [119, 299], 1)
+static_fc = np.delete(static_fc, [119, 299], 0)
 pd.DataFrame(static_fc).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_static_FC.csv"), index=False)
 
 plt.imshow(static_fc, cmap='viridis')
@@ -75,6 +77,8 @@ for i in range(0, time_series.shape[0] - window_size, window_step):
     window_ts = time_series[i:i + window_size, :]
 
     fc = fc_matrix(window_ts)
+    fc = np.delete(fc, [119, 299], 1)
+    fc = np.delete(fc, [119, 299], 0)
 
     all_fcs.append(fc)
 

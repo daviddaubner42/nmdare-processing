@@ -29,10 +29,18 @@ endfiles = [
     ),
     os.path.join(
         outdir,
-        "wb_command",
+        "xcp_d",
         "sub-{subid}",
-        "sub-{subid}_task-rest_boldmap.pconn.nii",
+        "func",
+        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
     ),
+    os.path.join(
+        outdir,
+        "xcp_d",
+        "sub-{subid}",
+        "func",
+        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
+    )
 ]
 
 # subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-")]
@@ -59,7 +67,7 @@ rule fmriprep:
             "sub-{subid}",
             "func",
             "sub-{subid}_task-rest_bold.nii.gz"
-        )
+        ),
     params:
         bids_dir=rawdir,
         out_dir=outdir,
@@ -67,212 +75,76 @@ rule fmriprep:
     output:
         os.path.join(
             outdir,
-            "freesurfer",
-            "sub-{subid}",
-            "surf",
-            "rh.thickness"
-        ),
-        os.path.join(
-            outdir,
             "fmriprep",
             "sub-{subid}",
             "func",
-            "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
-        )
+            "sub-{subid}_task-rest_space-fsLR_den-91k_bold.dtseries.nii"
+        ),
     container:
         config["containers"]["fmriprep"]
     shell:
-        "rm -rf {params.out_dir}/freesurfer/sub-{wildcards.subid} && "
         "fmriprep "
-        "{params.bids_dir} {params.out_dir} participant "
+        "{params.bids_dir} {params.out_dir}/fmriprep participant "
         "--fs-license-file {params.fs_license_dir}/license.txt "
         "--skip-bids-validation "
         "--participant_label {wildcards.subid} "
         "--output-spaces MNI152NLin2009cAsym:res-2 fsLR "
-        "--skip-bids-validation "
+        "--cifti-output "
         "--nthreads 16 "
-        "--omp-nthreads 16 "
-        "--output-layout legacy && "
-        "mv {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold.nii.gz {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
+        "--omp-nthreads 16"
 
-
-rule ciftify_recon_all:
+rule xcp_d:
     input:
-        os.path.join(outdir, "freesurfer", "sub-{subid}", "surf", "rh.thickness"),
-    params:
-        bids_dir=rawdir,
-        out_dir=outdir,
-        fs_license_dir=resourcedir,
-        n_cpus=8,
-    output:
-        os.path.join(
-            outdir,
-            "ciftify",
-            "sub-{subid}",
-            "MNINonLinear",
-            "fsaverage_LR32k",
-            "sub-{subid}.aparc.32k_fs_LR.dlabel.nii"
-        ),
-        os.path.join(
-            outdir,
-            "ciftify",
-            "sub-{subid}",
-            "MNINonLinear",
-            "aparc+aseg.nii.gz"
-        )
-    container:
-        config["containers"]["ciftify"]
-    shell:
-        "rm -rf {params.out_dir}/ciftify/sub-{wildcards.subid} && "
-        "ciftify_recon_all "
-        "--ciftify-work-dir {params.out_dir}/ciftify "
-        "--fs-subjects-dir {params.out_dir}/freesurfer "
-        "--fs-license {params.fs_license_dir}/license.txt "
-        "sub-{wildcards.subid}"
-
-
-rule ciftify_subject_fmri:
-    input:
-        os.path.join(
-            outdir,
-            "ciftify",
-            "sub-{subid}",
-            "MNINonLinear",
-            "fsaverage_LR32k",
-            "sub-{subid}.aparc.32k_fs_LR.dlabel.nii",
-        ),
         os.path.join(
             outdir,
             "fmriprep",
             "sub-{subid}",
             "func",
-            "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz",
+            "sub-{subid}_task-rest_space-fsLR_den-91k_bold.dtseries.nii"
         ),
     params:
-        bids_dir=rawdir,
         out_dir=outdir,
         fs_license_dir=resourcedir,
     output:
         os.path.join(
             outdir,
-            "ciftify",
+            "xcp_d",
             "sub-{subid}",
-            "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii",
+            "func",
+            "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
         ),
-    container:
-        config["containers"]["ciftify"]
-    shell:
-        "ciftify_subject_fmri "
-        "--ciftify-work-dir {params.out_dir}/ciftify "
-        "{params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz "
-        "sub-{wildcards.subid} "
-        "task-rest_desc-preproc"
-
-
-rule ciftify_atlas:
-    input:
-        atlas=os.path.join(
-            outdir,
-            "ciftify",
-            "sub-{subid}",
-            "MNINonLinear",
-            "aparc+aseg.nii.gz"
-        ),
-        bold=os.path.join(
-            outdir,
-            "ciftify",
-            "sub-{subid}",
-            "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii",
-        ),
-    params:
-        cifti_dir=os.path.join(outdir, "ciftify"),
-        workflow_dir=workflowdir,
-    output:
         os.path.join(
             outdir,
-            "ciftify",
+            "xcp_d",
             "sub-{subid}",
-            "sub-{subid}.aparcaseg.dscalar.nii"
-        )
-    container:
-        config["containers"]["ciftify"]
-    shell:
-        "ciftify_vol_result "
-        "sub-{wildcards.subid} "
-        "{input.atlas} "
-        "{output} "
-        "--ciftify-work-dir {params.cifti_dir} "
-        "--integer-labels --resample-nifti"
-
-
-rule extract_timeseries:
-    input:
-        atlas=os.path.join(
-            outdir,
-            "ciftify",
-            "sub-{subid}",
-            "sub-{subid}.aparcaseg.dscalar.nii"
-        ),
-        bold=os.path.join(
-            outdir,
-            "ciftify",
-            "sub-{subid}",
-            "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii",
-        ),
-    params:
-        resdir=os.path.join(outdir, "wb_command", "sub-{subid}"),
-        workflow_dir=workflowdir,
-        cifti_dir=os.path.join(outdir, "ciftify"),
-    output:
-        os.path.join(
-            outdir,
-            "wb_command",
-            "sub-{subid}",
-            "sub-{subid}_task-rest_timeseries.ptseries.nii",
+            "func",
+            "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
         ),
     container:
-        config["containers"]["wb_command"]
+        config["containers"]["xcp_d"]
     shell:
-        "mkdir -p {params.resdir} && "
-        "wb_command -cifti-label-import "
-        "{input.atlas} '' "
-        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dlabel.nii && "
-        "wb_command -cifti-parcellate "
-        "{input.bold} "
-        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dlabel.nii "
-        "COLUMN "
-        "{output}"
-
-rule calculate_static_fc:
-    input:
-        os.path.join(
-            outdir,
-            "wb_command",
-            "sub-{subid}",
-            "sub-{subid}_task-rest_timeseries.ptseries.nii",
-        ),
-    params:
-        workflow_dir=workflowdir,
-    output:
-        os.path.join(
-            outdir,
-            "wb_command",
-            "sub-{subid}",
-            "sub-{subid}_task-rest_boldmap.pconn.nii",
-        ),
-    container:
-        config["containers"]["wb_command"]
-    shell:
-        "wb_command -cifti-correlation {input} {output}"
-
+        "xcp_d "
+        "{params.out_dir}/fmriprep "
+        "{params.out_dir}/xcp_d "
+        "participant "
+        "--participant-label {wildcards.subid} "
+        "--mode linc "
+        "--atlases Glasser "
+        "--despike "
+        "--nuisance-regressors acompcor "
+        "--head_radius 40 "
+        "--fs-license-file {params.fs_license_dir}/license.txt "
+        "--smoothing 1 "
+        "--n_cpus 16"
 
 rule calculate_fcd:
     input:
         os.path.join(
             outdir,
-            "wb_command",
+            "xcp_d",
             "sub-{subid}",
-            "sub-{subid}_task-rest_timeseries.ptseries.nii",
+            "func",
+            "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
         ),
     params:
         outdir=os.path.join(outdir, "python"),
