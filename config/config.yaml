@@ -1,5 +1,5 @@
-datadir: /Volumes/KINGSTON/bids-complete
-rootdir: /Users/leonmartin_bih/projects/NMDARE/nmdare-processing
+datadir: /Users/brainsimulation/Desktop/NMDARE/bids
+rootdir: /Users/brainsimulation/Desktop/NMDARE/nmdare-processing
 
 containers:
   fmriprep: docker://nipreps/fmriprep:latest
