@@ -44,7 +44,7 @@ endfiles = [
 ]
 
 # subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-")]
-subids = ["LENMDA002"]
+subids = ["LENMDA005", "LEGK010", "LEGK011"]
 
 
 rule all:
@@ -129,7 +129,6 @@ rule xcp_d:
         "participant "
         "--participant-label {wildcards.subid} "
         "--mode linc "
-        "--atlases Glasser "
         "--despike "
         "--nuisance-regressors acompcor "
         "--head_radius 40 "
