@@ -44,7 +44,7 @@ endfiles = [
 ]
 
 # subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-")]
-subids = ["LENMDA005", "LEGK010", "LEGK011"]
+subids = ["LENMDA002"]
 
 
 rule all:
@@ -131,6 +131,7 @@ rule xcp_d:
         "--mode linc "
         "--despike "
         "--nuisance-regressors acompcor "
+        "--atlases Glasser 4S156Parcels 4S256Parcels 4S356Parcels "
         "--head_radius 40 "
         "--fs-license-file {params.fs_license_dir}/license.txt "
         "--smoothing 1 "
