@@ -58,9 +58,17 @@ time_series = nib.load(ts_fname).dataobj
 # Truncate the first few volumes
 
 static_fc = fc_matrix(time_series)
-static_fc = np.delete(static_fc, [119, 299], 1)
-static_fc = np.delete(static_fc, [119, 299], 0)
-pd.DataFrame(static_fc).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_static_FC.csv"), index=False)
+if "Glasser" in ts_fname:
+    static_fc = np.delete(static_fc, [119, 299], 1)
+    static_fc = np.delete(static_fc, [119, 299], 0)
+np.fill_diagonal(static_fc, np.nan)
+
+if "Glasser" in ts_fname:
+    pd.DataFrame(static_fc).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-Glasser_static_FC.csv"), index=False)
+elif "4S156" in ts_fname:
+    pd.DataFrame(static_fc).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-4S156_static_FC.csv"), index=False)
+else:
+    pd.DataFrame(static_fc).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-unknown_static_FC.csv"), index=False)
 
 plt.imshow(static_fc, cmap='viridis')
 plt.colorbar(label='Correlation')
@@ -77,8 +85,10 @@ for i in range(0, time_series.shape[0] - window_size, window_step):
     window_ts = time_series[i:i + window_size, :]
 
     fc = fc_matrix(window_ts)
-    fc = np.delete(fc, [119, 299], 1)
-    fc = np.delete(fc, [119, 299], 0)
+    if "Glasser" in ts_fname:
+        fc = np.delete(fc, [119, 299], 1)
+        fc = np.delete(fc, [119, 299], 0)
+    np.fill_diagonal(fc, np.nan)
 
     all_fcs.append(fc)
 
@@ -89,7 +99,12 @@ for i in range(n_fcs):
     for j in range(n_fcs):
         FCD[i, j] = FCuCorrelation(all_fcs[i], all_fcs[j])
 
-pd.DataFrame(FCD).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_FCD.csv"), index=False)
+if "Glasser" in ts_fname:
+    pd.DataFrame(FCD).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-Glasser_FCD.csv"), index=False)
+elif "4S156" in ts_fname:
+    pd.DataFrame(FCD).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-4S156_FCD.csv"), index=False)
+else:
+    pd.DataFrame(FCD).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-unknown_FCD.csv"), index=False)
 
 plt.imshow(FCD, cmap='viridis')
 plt.colorbar(label='Correlation')
@@ -102,4 +117,10 @@ fcd_flattened = FCD.flatten()
 hist = plt.hist(fcd_flattened, bins=100, range=(0, 1))
 plt.savefig(os.path.join(derivatives_dir, sub, "figs", f"{sub}_FCD_histogram.png"))
 bin_counts = hist[0]
-pd.DataFrame(bin_counts).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_FCD_histogram_counts.csv"), index=False)
+
+if "Glasser" in ts_fname:
+    pd.DataFrame(bin_counts).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-Glasser_FCD_histogram_counts.csv"), index=False)
+elif "4S156" in ts_fname:
+    pd.DataFrame(bin_counts).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-4S156_FCD_histogram_counts.csv"), index=False)
+else:
+    pd.DataFrame(bin_counts).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-unknown_FCD_histogram_counts.csv"), index=False)

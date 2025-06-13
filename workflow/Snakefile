@@ -19,13 +19,35 @@ workflowdir = join(config["rootdir"], "workflow")
 os.makedirs(outdir, exist_ok=True)
 
 endfiles = [
-    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_static_FC.csv"),
-    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_FCD.csv"),
+    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_static_FC.csv"),
+    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD.csv"),
+    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_static_FC.csv"),
+    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD.csv"),
     os.path.join(
-        outdir, "python", "sub-{subid}", "sub-{subid}_FCD_histogram_counts.csv"
+        outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD_histogram_counts.csv"
     ),
     os.path.join(
-        outdir, "python", "sub-{subid}", "figs", "sub-{subid}_FCD_histogram.png"
+        outdir, "python", "sub-{subid}", "figs", "sub-{subid}_seg-4S156_FCD_histogram.png"
+    ),
+    os.path.join(
+        outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD_histogram_counts.csv"
+    ),
+    os.path.join(
+        outdir, "python", "sub-{subid}", "figs", "sub-{subid}_seg-Glasser_FCD_histogram.png"
+    ),
+    os.path.join(
+        outdir,
+        "xcp_d",
+        "sub-{subid}",
+        "func",
+        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
+    ),
+    os.path.join(
+        outdir,
+        "xcp_d",
+        "sub-{subid}",
+        "func",
+        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
     ),
     os.path.join(
         outdir,
@@ -105,24 +127,26 @@ rule xcp_d:
     params:
         out_dir=outdir,
         fs_license_dir=resourcedir,
+        workflow_dir=workflowdir,
     output:
         os.path.join(
             outdir,
             "xcp_d",
             "sub-{subid}",
             "func",
-            "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
+            "sub-{subid}_task-rest_space-fsLR_seg-4S156Parcels_den-91k_stat-mean_timeseries.ptseries.nii"
         ),
         os.path.join(
             outdir,
             "xcp_d",
             "sub-{subid}",
             "func",
-            "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
+            "sub-{subid}_task-rest_space-fsLR_seg-4S156Parcels_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
         ),
     container:
         config["containers"]["xcp_d"]
     shell:
+        "rm -rf {params.workflow_dir}/working_dir && "
         "xcp_d "
         "{params.out_dir}/fmriprep "
         "{params.out_dir}/xcp_d "
@@ -137,7 +161,40 @@ rule xcp_d:
         "--smoothing 1 "
         "--n_cpus 16"
 
-rule calculate_fcd:
+rule calculate_fcd_4S156:
+    input:
+        os.path.join(
+            outdir,
+            "xcp_d",
+            "sub-{subid}",
+            "func",
+            "sub-{subid}_task-rest_space-fsLR_seg-4S156Parcels_den-91k_stat-mean_timeseries.ptseries.nii"
+        ),
+    params:
+        outdir=os.path.join(outdir, "python"),
+        workflow_dir=workflowdir,
+    output:
+        os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_static_FC.csv"),
+        os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD.csv"),
+        os.path.join(
+            outdir,
+            "python",
+            "sub-{subid}",
+            "sub-{subid}_seg-4S156_FCD_histogram_counts.csv",
+        ),
+        os.path.join(
+            outdir,
+            "python",
+            "sub-{subid}",
+            "figs",
+            "sub-{subid}_seg-4S156_FCD_histogram.png",
+        ),
+    conda:
+        "envs/environment.yaml"
+    shell:
+        "python {params.workflow_dir}/scripts/fc_analysis.py sub-{wildcards.subid} {input} {params.outdir}"
+
+rule calculate_fcd_Glasser:
     input:
         os.path.join(
             outdir,
@@ -150,20 +207,20 @@ rule calculate_fcd:
         outdir=os.path.join(outdir, "python"),
         workflow_dir=workflowdir,
     output:
-        os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_static_FC.csv"),
-        os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_FCD.csv"),
+        os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_static_FC.csv"),
+        os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD.csv"),
         os.path.join(
             outdir,
             "python",
             "sub-{subid}",
-            "sub-{subid}_FCD_histogram_counts.csv",
+            "sub-{subid}_seg-Glasser_FCD_histogram_counts.csv",
         ),
         os.path.join(
             outdir,
             "python",
             "sub-{subid}",
             "figs",
-            "sub-{subid}_FCD_histogram.png",
+            "sub-{subid}_seg-Glasser_FCD_histogram.png",
         ),
     conda:
         "envs/environment.yaml"
