@@ -63,12 +63,6 @@ if "Glasser" in ts_fname:
     static_fc = np.delete(static_fc, [119, 299], 0)
 np.fill_diagonal(static_fc, np.nan)
 
-plt.imshow(static_fc, cmap='viridis')
-plt.colorbar(label='Correlation')
-plt.title(f'Static FC Matrix: {sub}')
-plt.tight_layout()
-plt.close()
-
 window_size = 40
 window_step = 5
 
@@ -91,34 +85,68 @@ for i in range(n_fcs):
     for j in range(n_fcs):
         FCD[i, j] = FCuCorrelation(all_fcs[i], all_fcs[j])
 
-plt.imshow(FCD, cmap='viridis')
-plt.colorbar(label='Correlation')
-plt.title(f'FCD Matrix: {sub}')
-plt.tight_layout()
-plt.close()
-
 fcd_flattened = FCD.flatten()
-hist = plt.hist(fcd_flattened, bins=100, range=(0, 1))
-bin_counts = hist[0]
 
 if "Glasser" in ts_fname:
     pd.DataFrame(static_fc).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-Glasser_static_FC.csv"), index=False)
+    plt.imshow(static_fc, cmap='viridis')
+    plt.colorbar(label='Correlation')
+    plt.title(f'Static FC Matrix: {sub}')
+    plt.tight_layout()
     plt.savefig(os.path.join(derivatives_dir, sub, "figs", f"{sub}_seg-Glasser_static_FC.png"))
+    plt.close()
+
     pd.DataFrame(FCD).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-Glasser_FCD.csv"), index=False)
+    plt.imshow(FCD, cmap='viridis')
+    plt.colorbar(label='Correlation')
+    plt.title(f'FCD Matrix: {sub}')
+    plt.tight_layout()
     plt.savefig(os.path.join(derivatives_dir, sub, "figs", f"{sub}_seg-Glasser_FCD.png"))
+    plt.close()
+
+    hist = plt.hist(fcd_flattened, bins=100, range=(0, 1))
+    bin_counts = hist[0]
     pd.DataFrame(bin_counts).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-Glasser_FCD_histogram_counts.csv"), index=False)
     plt.savefig(os.path.join(derivatives_dir, sub, "figs", f"{sub}_seg-Glasser_FCD_histogram.png"))
 elif "4S156" in ts_fname:
     pd.DataFrame(static_fc).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-4S156_static_FC.csv"), index=False)
+    plt.imshow(static_fc, cmap='viridis')
+    plt.colorbar(label='Correlation')
+    plt.title(f'Static FC Matrix: {sub}')
+    plt.tight_layout()
     plt.savefig(os.path.join(derivatives_dir, sub, "figs", f"{sub}_seg-4S156_static_FC.png"))
+    plt.close()
+
     pd.DataFrame(FCD).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-4S156_FCD.csv"), index=False)
+    plt.imshow(FCD, cmap='viridis')
+    plt.colorbar(label='Correlation')
+    plt.title(f'FCD Matrix: {sub}')
+    plt.tight_layout()
     plt.savefig(os.path.join(derivatives_dir, sub, "figs", f"{sub}_seg-4S156_FCD.png"))
+    plt.close()
+
+    hist = plt.hist(fcd_flattened, bins=100, range=(0, 1))
+    bin_counts = hist[0]
     pd.DataFrame(bin_counts).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-4S156_FCD_histogram_counts.csv"), index=False)
     plt.savefig(os.path.join(derivatives_dir, sub, "figs", f"{sub}_seg-4S156_FCD_histogram.png"))
 else:
     pd.DataFrame(static_fc).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-unknown_static_FC.csv"), index=False)
+    plt.imshow(static_fc, cmap='viridis')
+    plt.colorbar(label='Correlation')
+    plt.title(f'Static FC Matrix: {sub}')
+    plt.tight_layout()
     plt.savefig(os.path.join(derivatives_dir, sub, "figs", f"{sub}_seg-unknown_static_FC.png"))
+    plt.close()
+    
     pd.DataFrame(FCD).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-unknown_FCD.csv"), index=False)
+    plt.imshow(FCD, cmap='viridis')
+    plt.colorbar(label='Correlation')
+    plt.title(f'FCD Matrix: {sub}')
+    plt.tight_layout()
     plt.savefig(os.path.join(derivatives_dir, sub, "figs", f"{sub}_seg-unknown_FCD.png"))
+    plt.close()
+
+    hist = plt.hist(fcd_flattened, bins=100, range=(0, 1))
+    bin_counts = hist[0]
     pd.DataFrame(bin_counts).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-unknown_FCD_histogram_counts.csv"), index=False)
     plt.savefig(os.path.join(derivatives_dir, sub, "figs", f"{sub}_seg-unknown_FCD_histogram.png"))
