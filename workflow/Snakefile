@@ -142,6 +142,20 @@ rule xcp_d:
             "xcp_d",
             "sub-{subid}",
             "func",
+            "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
+        ),
+        os.path.join(
+            outdir,
+            "xcp_d",
+            "sub-{subid}",
+            "func",
+            "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
+        ),
+        os.path.join(
+            outdir,
+            "xcp_d",
+            "sub-{subid}",
+            "func",
             "sub-{subid}_task-rest_space-fsLR_seg-4S156Parcels_den-91k_stat-mean_timeseries.ptseries.nii"
         ),
         os.path.join(
