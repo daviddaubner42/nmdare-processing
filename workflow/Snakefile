@@ -94,6 +94,10 @@ rule fmriprep:
         bids_dir=rawdir,
         out_dir=outdir,
         fs_license_dir=resourcedir
+    threads: 8
+    resources:
+        mem: '8G',
+        time: '12:00:00'
     output:
         os.path.join(
             outdir,
@@ -128,6 +132,10 @@ rule xcp_d:
         out_dir=outdir,
         fs_license_dir=resourcedir,
         workflow_dir=workflowdir,
+    threads: 8
+    resources:
+        mem: '8G',
+        time: '12:00:00'
     output:
         os.path.join(
             outdir,
@@ -173,6 +181,10 @@ rule calculate_fcd_4S156:
     params:
         outdir=os.path.join(outdir, "python"),
         workflow_dir=workflowdir,
+    threads: 8
+    resources:
+        mem: '8G',
+        time: '12:00:00'
     output:
         os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_static_FC.csv"),
         os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD.csv"),
@@ -206,6 +218,10 @@ rule calculate_fcd_Glasser:
     params:
         outdir=os.path.join(outdir, "python"),
         workflow_dir=workflowdir,
+    threads: 8
+    resources:
+        mem: '8G',
+        time: '12:00:00'
     output:
         os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_static_FC.csv"),
         os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD.csv"),

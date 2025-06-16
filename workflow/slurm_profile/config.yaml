@@ -1,0 +1,13 @@
+executor: slurm
+jobs: 50
+latency-wait: 30
+use-singularity: true
+singularity-args: "--bind $HOME:$HOME --bind /data/cephfs-1/work/groups/ritter/users/dada15_c:/data/cephfs-1/work/groups/ritter/users/dada15_c"
+rerun-incomplete: true
+default-resources:
+  - runtime=60
+  - account=dada15_c
+  - mem_mb=16000
+  - cpus_per_task=4
+  - mem=32G
+  - partition=short
