@@ -65,8 +65,8 @@ endfiles = [
     )
 ]
 
-# subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-")]
-subids = ["LENMDA002"]
+subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-")]
+# subids = ["LENMDA002"]
 
 
 rule all:
@@ -96,8 +96,8 @@ rule fmriprep:
         fs_license_dir=resourcedir
     threads: 8
     resources:
-        mem: '8G',
-        time: '12:00:00'
+        mem='16G',
+        time='12:00:00'
     output:
         os.path.join(
             outdir,
@@ -134,8 +134,8 @@ rule xcp_d:
         workflow_dir=workflowdir,
     threads: 8
     resources:
-        mem: '8G',
-        time: '12:00:00'
+        mem='8G',
+        time='06:00:00'
     output:
         os.path.join(
             outdir,
@@ -183,8 +183,8 @@ rule calculate_fcd_4S156:
         workflow_dir=workflowdir,
     threads: 8
     resources:
-        mem: '8G',
-        time: '12:00:00'
+        mem='1G',
+        time='01:00:00'
     output:
         os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_static_FC.csv"),
         os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD.csv"),
@@ -220,8 +220,8 @@ rule calculate_fcd_Glasser:
         workflow_dir=workflowdir,
     threads: 8
     resources:
-        mem: '8G',
-        time: '12:00:00'
+        mem='1G',
+        time='01:00:00'
     output:
         os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_static_FC.csv"),
         os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD.csv"),
