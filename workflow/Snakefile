@@ -19,49 +19,56 @@ workflowdir = join(config["rootdir"], "workflow")
 os.makedirs(outdir, exist_ok=True)
 
 endfiles = [
-    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_static_FC.csv"),
-    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD.csv"),
-    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_static_FC.csv"),
-    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD.csv"),
-    os.path.join(
-        outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD_histogram_counts.csv"
-    ),
-    os.path.join(
-        outdir, "python", "sub-{subid}", "figs", "sub-{subid}_seg-4S156_FCD_histogram.png"
-    ),
-    os.path.join(
-        outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD_histogram_counts.csv"
-    ),
-    os.path.join(
-        outdir, "python", "sub-{subid}", "figs", "sub-{subid}_seg-Glasser_FCD_histogram.png"
-    ),
+    # os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_static_FC.csv"),
+    # os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD.csv"),
+    # os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_static_FC.csv"),
+    # os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD.csv"),
+    # os.path.join(
+    #     outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD_histogram_counts.csv"
+    # ),
+    # os.path.join(
+    #     outdir, "python", "sub-{subid}", "figs", "sub-{subid}_seg-4S156_FCD_histogram.png"
+    # ),
+    # os.path.join(
+    #     outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD_histogram_counts.csv"
+    # ),
+    # os.path.join(
+    #     outdir, "python", "sub-{subid}", "figs", "sub-{subid}_seg-Glasser_FCD_histogram.png"
+    # ),
+    # os.path.join(
+    #     outdir,
+    #     "xcp_d",
+    #     "sub-{subid}",
+    #     "func",
+    #     "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
+    # ),
+    # os.path.join(
+    #     outdir,
+    #     "xcp_d",
+    #     "sub-{subid}",
+    #     "func",
+    #     "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
+    # ),
+    # os.path.join(
+    #     outdir,
+    #     "xcp_d",
+    #     "sub-{subid}",
+    #     "func",
+    #     "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
+    # ),
+    # os.path.join(
+    #     outdir,
+    #     "xcp_d",
+    #     "sub-{subid}",
+    #     "func",
+    #     "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
+    # )
     os.path.join(
         outdir,
         "xcp_d",
         "sub-{subid}",
         "func",
         "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
-    ),
-    os.path.join(
-        outdir,
-        "xcp_d",
-        "sub-{subid}",
-        "func",
-        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
-    ),
-    os.path.join(
-        outdir,
-        "xcp_d",
-        "sub-{subid}",
-        "func",
-        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
-    ),
-    os.path.join(
-        outdir,
-        "xcp_d",
-        "sub-{subid}",
-        "func",
-        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
     )
 ]
 
