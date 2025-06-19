@@ -1,6 +1,6 @@
-datadir: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/bids
-rootdir: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processing
+datadir: /Users/brainsimulation/Desktop/NMDARE/bids
+rootdir: /Users/brainsimulation/Desktop/NMDARE/nmdare-processing
 
 containers:
   fmriprep: docker://nipreps/fmriprep:latest
-  xcp_d: docker://pennlinc/xcp_d:latest
+  ciftify: docker://tigrlab/ciftify

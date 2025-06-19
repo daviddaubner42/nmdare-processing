@@ -1,0 +1,265 @@
+import os
+from os.path import join
+
+
+configfile: "config/config.yaml"
+report: "workflow.rst"
+
+
+# conda: "envs/environment.yaml"
+
+rawdir = join(config["datadir"])
+outdir = join(config["datadir"], "derivatives")
+
+resourcedir = join(config["rootdir"], "resources")
+workflowdir = join(config["rootdir"], "workflow")
+
+
+# Create the results directory if it doesn't exist already
+os.makedirs(outdir, exist_ok=True)
+
+endfiles = [
+    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_static_FC.csv"),
+    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD.csv"),
+    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_static_FC.csv"),
+    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD.csv"),
+    os.path.join(
+        outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD_histogram_counts.csv"
+    ),
+    os.path.join(
+        outdir, "python", "sub-{subid}", "figs", "sub-{subid}_seg-4S156_FCD_histogram.png"
+    ),
+    os.path.join(
+        outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD_histogram_counts.csv"
+    ),
+    os.path.join(
+        outdir, "python", "sub-{subid}", "figs", "sub-{subid}_seg-Glasser_FCD_histogram.png"
+    ),
+    os.path.join(
+        outdir,
+        "xcp_d",
+        "sub-{subid}",
+        "func",
+        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
+    ),
+    os.path.join(
+        outdir,
+        "xcp_d",
+        "sub-{subid}",
+        "func",
+        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
+    ),
+    os.path.join(
+        outdir,
+        "xcp_d",
+        "sub-{subid}",
+        "func",
+        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
+    ),
+    os.path.join(
+        outdir,
+        "xcp_d",
+        "sub-{subid}",
+        "func",
+        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
+    ),
+    os.path.join(
+        outdir,
+        "xcp_d",
+        "sub-{subid}",
+        "func",
+        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
+    )
+]
+
+subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-RS")]
+# subids = ["LENMDA002"]
+
+
+rule all:
+    """
+    Generates all required outputs
+    """
+    input:
+        expand(endfiles, subid=subids),
+
+
+rule fmriprep:
+    input:
+        os.path.join(rawdir, "sub-{subid}", "anat", "sub-{subid}_T1w.nii.gz"),
+        os.path.join(rawdir, "sub-{subid}", "anat", "sub-{subid}_T2w.nii.gz"),
+        os.path.join(rawdir, "sub-{subid}", "fmap", "sub-{subid}_magnitude1.nii.gz"),
+        os.path.join(rawdir, "sub-{subid}", "fmap", "sub-{subid}_magnitude2.nii.gz"),
+        os.path.join(rawdir, "sub-{subid}", "fmap", "sub-{subid}_phasediff.nii.gz"),
+        os.path.join(
+            rawdir,
+            "sub-{subid}",
+            "func",
+            "sub-{subid}_task-rest_bold.nii.gz"
+        ),
+    params:
+        bids_dir=rawdir,
+        out_dir=outdir,
+        fs_license_dir=resourcedir
+    threads: 8
+    resources:
+        mem='16G',
+        time='12:00:00'
+    output:
+        os.path.join(
+            outdir,
+            "fmriprep",
+            "sub-{subid}",
+            "func",
+            "sub-{subid}_task-rest_space-fsLR_den-91k_bold.dtseries.nii"
+        ),
+    container:
+        config["containers"]["fmriprep"]
+    shell:
+        "fmriprep "
+        "{params.bids_dir} {params.out_dir}/fmriprep participant "
+        "--fs-license-file {params.fs_license_dir}/license.txt "
+        "--skip-bids-validation "
+        "--participant_label {wildcards.subid} "
+        "--output-spaces MNI152NLin2009cAsym:res-2 fsLR "
+        "--cifti-output "
+        "--nthreads 16 "
+        "--omp-nthreads 16"
+
+rule xcp_d:
+    input:
+        os.path.join(
+            outdir,
+            "fmriprep",
+            "sub-{subid}",
+            "func",
+            "sub-{subid}_task-rest_space-fsLR_den-91k_bold.dtseries.nii"
+        ),
+    params:
+        out_dir=outdir,
+        fs_license_dir=resourcedir,
+        workflow_dir=workflowdir,
+    threads: 8
+    resources:
+        mem='16G',
+        time='06:00:00'
+    output:
+        os.path.join(
+            outdir,
+            "xcp_d",
+            "sub-{subid}",
+            "func",
+            "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
+        ),
+        os.path.join(
+            outdir,
+            "xcp_d",
+            "sub-{subid}",
+            "func",
+            "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
+        ),
+        os.path.join(
+            outdir,
+            "xcp_d",
+            "sub-{subid}",
+            "func",
+            "sub-{subid}_task-rest_space-fsLR_seg-4S156Parcels_den-91k_stat-mean_timeseries.ptseries.nii"
+        ),
+        os.path.join(
+            outdir,
+            "xcp_d",
+            "sub-{subid}",
+            "func",
+            "sub-{subid}_task-rest_space-fsLR_seg-4S156Parcels_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
+        ),
+    container:
+        config["containers"]["xcp_d"]
+    shell:
+        "rm -rf {params.workflow_dir}/working_dir && "
+        "xcp_d "
+        "{params.out_dir}/fmriprep "
+        "{params.out_dir}/xcp_d "
+        "participant "
+        "--participant-label {wildcards.subid} "
+        "--mode linc "
+        "--despike "
+        "--nuisance-regressors acompcor "
+        "--atlases Glasser 4S156Parcels 4S256Parcels 4S356Parcels "
+        "--head_radius 40 "
+        "--fs-license-file {params.fs_license_dir}/license.txt "
+        "--smoothing 1 "
+        "--n_cpus 16"
+
+rule calculate_fcd_4S156:
+    input:
+        os.path.join(
+            outdir,
+            "xcp_d",
+            "sub-{subid}",
+            "func",
+            "sub-{subid}_task-rest_space-fsLR_seg-4S156Parcels_den-91k_stat-mean_timeseries.ptseries.nii"
+        ),
+    params:
+        outdir=os.path.join(outdir, "python"),
+        workflow_dir=workflowdir,
+    threads: 8
+    resources:
+        mem='1G',
+        time='01:00:00'
+    output:
+        os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_static_FC.csv"),
+        os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD.csv"),
+        os.path.join(
+            outdir,
+            "python",
+            "sub-{subid}",
+            "sub-{subid}_seg-4S156_FCD_histogram_counts.csv",
+        ),
+        os.path.join(
+            outdir,
+            "python",
+            "sub-{subid}",
+            "figs",
+            "sub-{subid}_seg-4S156_FCD_histogram.png",
+        ),
+    conda:
+        "envs/environment.yaml"
+    shell:
+        "python {params.workflow_dir}/scripts/fc_analysis.py sub-{wildcards.subid} {input} {params.outdir}"
+
+rule calculate_fcd_Glasser:
+    input:
+        os.path.join(
+            outdir,
+            "xcp_d",
+            "sub-{subid}",
+            "func",
+            "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
+        ),
+    params:
+        outdir=os.path.join(outdir, "python"),
+        workflow_dir=workflowdir,
+    threads: 8
+    resources:
+        mem='1G',
+        time='01:00:00'
+    output:
+        os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_static_FC.csv"),
+        os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD.csv"),
+        os.path.join(
+            outdir,
+            "python",
+            "sub-{subid}",
+            "sub-{subid}_seg-Glasser_FCD_histogram_counts.csv",
+        ),
+        os.path.join(
+            outdir,
+            "python",
+            "sub-{subid}",
+            "figs",
+            "sub-{subid}_seg-Glasser_FCD_histogram.png",
+        ),
+    conda:
+        "envs/environment.yaml"
+    shell:
+        "python {params.workflow_dir}/scripts/fc_analysis.py sub-{wildcards.subid} {input} {params.outdir}"
