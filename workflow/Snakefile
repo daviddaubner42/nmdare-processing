@@ -19,50 +19,50 @@ workflowdir = join(config["rootdir"], "workflow")
 os.makedirs(outdir, exist_ok=True)
 
 endfiles = [
-    # os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_static_FC.csv"),
-    # os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD.csv"),
-    # os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_static_FC.csv"),
-    # os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD.csv"),
-    # os.path.join(
-    #     outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD_histogram_counts.csv"
-    # ),
-    # os.path.join(
-    #     outdir, "python", "sub-{subid}", "figs", "sub-{subid}_seg-4S156_FCD_histogram.png"
-    # ),
-    # os.path.join(
-    #     outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD_histogram_counts.csv"
-    # ),
-    # os.path.join(
-    #     outdir, "python", "sub-{subid}", "figs", "sub-{subid}_seg-Glasser_FCD_histogram.png"
-    # ),
-    # os.path.join(
-    #     outdir,
-    #     "xcp_d",
-    #     "sub-{subid}",
-    #     "func",
-    #     "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
-    # ),
-    # os.path.join(
-    #     outdir,
-    #     "xcp_d",
-    #     "sub-{subid}",
-    #     "func",
-    #     "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
-    # ),
-    # os.path.join(
-    #     outdir,
-    #     "xcp_d",
-    #     "sub-{subid}",
-    #     "func",
-    #     "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
-    # ),
-    # os.path.join(
-    #     outdir,
-    #     "xcp_d",
-    #     "sub-{subid}",
-    #     "func",
-    #     "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
-    # )
+    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_static_FC.csv"),
+    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD.csv"),
+    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_static_FC.csv"),
+    os.path.join(outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD.csv"),
+    os.path.join(
+        outdir, "python", "sub-{subid}", "sub-{subid}_seg-4S156_FCD_histogram_counts.csv"
+    ),
+    os.path.join(
+        outdir, "python", "sub-{subid}", "figs", "sub-{subid}_seg-4S156_FCD_histogram.png"
+    ),
+    os.path.join(
+        outdir, "python", "sub-{subid}", "sub-{subid}_seg-Glasser_FCD_histogram_counts.csv"
+    ),
+    os.path.join(
+        outdir, "python", "sub-{subid}", "figs", "sub-{subid}_seg-Glasser_FCD_histogram.png"
+    ),
+    os.path.join(
+        outdir,
+        "xcp_d",
+        "sub-{subid}",
+        "func",
+        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
+    ),
+    os.path.join(
+        outdir,
+        "xcp_d",
+        "sub-{subid}",
+        "func",
+        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
+    ),
+    os.path.join(
+        outdir,
+        "xcp_d",
+        "sub-{subid}",
+        "func",
+        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-mean_timeseries.ptseries.nii"
+    ),
+    os.path.join(
+        outdir,
+        "xcp_d",
+        "sub-{subid}",
+        "func",
+        "sub-{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
+    )
     os.path.join(
         outdir,
         "xcp_d",
@@ -72,7 +72,7 @@ endfiles = [
     )
 ]
 
-subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-")]
+subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-RS")]
 # subids = ["LENMDA002"]
 
 
@@ -141,7 +141,7 @@ rule xcp_d:
         workflow_dir=workflowdir,
     threads: 8
     resources:
-        mem='8G',
+        mem='16G',
         time='06:00:00'
     output:
         os.path.join(
