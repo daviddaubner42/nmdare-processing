@@ -63,8 +63,8 @@ if "Glasser" in ts_fname:
     static_fc = np.delete(static_fc, [119, 299], 0)
 np.fill_diagonal(static_fc, np.nan)
 
-window_size = 40
-window_step = 5
+window_size = 30
+window_step = 1
 
 all_fcs = []
 for i in range(0, time_series.shape[0] - window_size, window_step):
@@ -85,7 +85,8 @@ for i in range(n_fcs):
     for j in range(n_fcs):
         FCD[i, j] = FCuCorrelation(all_fcs[i], all_fcs[j])
 
-fcd_flattened = FCD.flatten()
+np.fill_diagonal(FCD, np.nan)
+fcd_flattened = FCD(np.triu_indices_from(FCD))
 
 if "Glasser" in ts_fname:
     pd.DataFrame(static_fc).to_csv(os.path.join(derivatives_dir, sub, f"{sub}_seg-Glasser_static_FC.csv"), index=False)
