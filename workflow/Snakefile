@@ -188,7 +188,7 @@ rule xcp_d:
         "--atlases Glasser 4S156Parcels 4S256Parcels 4S356Parcels "
         "--head_radius 40 "
         "--fs-license-file {params.fs_license_dir}/license.txt "
-        "--smoothing 1 "
+        "--smoothing 6 "
         "--n_cpus 16"
 
 rule calculate_fcd_4S156:

@@ -5,12 +5,16 @@ import pandas as pd
 import argparse
 import os
 
-def fc_matrix(ts):
+def fc_matrix(ts, cutoff=5, fisher=True):
+    ts = ts[cutoff:]
+
     n = ts.shape[1]
     fc = np.zeros((n, n))
     for i in range(n):
         for j in range(n):
             fc[i, j] = np.corrcoef(ts[:, i], ts[:, j])[0, 1]
+    if fisher:
+        fc = np.arctanh(fc)
     return fc
 
 def FCuCorrelation(FC1, FC2, fisher=True):
