@@ -209,9 +209,10 @@ rule ciftify_atlas:
     output:
         os.path.join(
             outdir,
-            "ciftify",
+            "atlases",
             "sub-{subid}",
-            "sub-{subid}.aparcaseg.dscalar.nii"
+            "atlas-aparc+aseg",
+            "atlas-aparc+aseg_space-fsLR_den-32k_dseg.dlabel.nii"
         )
     container:
         config["containers"]["ciftify"]
@@ -227,7 +228,7 @@ rule ciftify_atlas:
         "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dlabel.nii && "
         "mkdir -p {params.outdir}/atlases/sub-{wildcards.subid}/atlas-aparc+aseg && "
         "cp {params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dlabel.nii "
-        "{params.outdir}/atlases/sub-{wildcards.subid}/atlas-aparc+aseg/atlas-aparc+aseg.dlabel.nii"
+        "{params.outdir}/atlases/sub-{wildcards.subid}/atlas-aparc+aseg/atlas-aparc+aseg_space-fsLR_den-32k_dseg.dlabel.nii"
 
 rule xcp_d:
     input:
