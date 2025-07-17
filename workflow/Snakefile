@@ -146,10 +146,10 @@ rule ciftify_recon_all:
     shell:
         "rm -rf {params.out_dir}/ciftify/sub-{wildcards.subid} && "
         "ciftify_recon_all "
-        "sub-{wildcards.subid} "
         "--ciftify-work-dir {params.out_dir}/ciftify "
         "--fs-subjects-dir {params.out_dir}/fmriprep/sourcedata/freesurfer "
-        "--fs-license {params.fs_license_dir}/license.txt"
+        "--fs-license {params.fs_license_dir}/license.txt "
+        "sub-{wildcards.subid}"
 
 rule ciftify_subject_fmri:
     input:
@@ -167,7 +167,7 @@ rule ciftify_subject_fmri:
             "sub-{subid}",
             "func",
             "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz",
-        ),
+        )
     params:
         bids_dir=rawdir,
         out_dir=outdir,
@@ -178,7 +178,7 @@ rule ciftify_subject_fmri:
             "ciftify",
             "sub-{subid}",
             "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii",
-        ),
+        )
     container:
         config["containers"]["ciftify"]
     shell:
@@ -203,7 +203,7 @@ rule ciftify_atlas:
             "ciftify",
             "sub-{subid}",
             "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii",
-        ),
+        )
     params:
         cifti_dir=os.path.join(outdir, "ciftify"),
         workflow_dir=workflowdir,
@@ -268,7 +268,7 @@ rule xcp_d:
             "sub-{subid}",
             "func",
             "sub-{subid}_task-rest_space-fsLR_seg-4S156Parcels_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
-        ),
+        )
     container:
         config["containers"]["xcp_d"]
     shell:
