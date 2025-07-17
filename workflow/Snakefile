@@ -128,18 +128,19 @@ rule ciftify_recon_all:
     output:
         atlas=os.path.join(
             outdir,
-            "atlases",
+            "ciftify",
             "sub-{subid}",
-            "atlas-aparc+aseg",
-            "atlas-aparc+aseg_space-fsLR_den-32k_dseg.dlabel.nii"
+            "MNINonLinear",
+            "fsaverage_LR32k",
+            "sub-{subid}.aparc.32k_fs_LR.dlabel.nii"
         ),
-        # os.path.join(
-        #     outdir,
-        #     "ciftify",
-        #     "sub-{subid}",
-        #     "MNINonLinear",
-        #     "aparc+aseg.nii.gz"
-        # )
+        os.path.join(
+            outdir,
+            "ciftify",
+            "sub-{subid}",
+            "MNINonLinear",
+            "aparc+aseg.nii.gz"
+        )
     container:
         config["containers"]["ciftify"]
     shell:
@@ -148,83 +149,80 @@ rule ciftify_recon_all:
         "--ciftify-work-dir {params.out_dir}/ciftify "
         "--fs-subjects-dir {params.out_dir}/fmriprep/sourcedata/freesurfer "
         "--fs-license {params.fs_license_dir}/license.txt "
-        "sub-{wildcards.subid} && "
-        "mkdir -p {params.outdir}/atlases/sub-{wildcards.subid}/atlas-aparc+aseg && "
-        "mv {output.atlas} {params.outdir}/atlases/sub-{wildcards.subid}/atlas-aparc+aseg/atlas-aparc+aseg_space-fsLR_den-32k_dseg.dlabel.nii"
+        "sub-{wildcards.subid}"
+
+rule ciftify_subject_fmri:
+    input:
+        os.path.join(
+            outdir,
+            "ciftify",
+            "sub-{subid}",
+            "MNINonLinear",
+            "fsaverage_LR32k",
+            "sub-{subid}.aparc.32k_fs_LR.dlabel.nii",
+        ),
+        os.path.join(
+            outdir,
+            "fmriprep",
+            "sub-{subid}",
+            "func",
+            "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz",
+        ),
+    params:
+        bids_dir=rawdir,
+        out_dir=outdir,
+        fs_license_dir=resourcedir,
+    output:
+        os.path.join(
+            outdir,
+            "ciftify",
+            "sub-{subid}",
+            "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii",
+        ),
+    container:
+        config["containers"]["ciftify"]
+    shell:
+        "ciftify_subject_fmri "
+        "--ciftify-work-dir {params.out_dir}/ciftify "
+        "{params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz "
+        "sub-{wildcards.subid} "
+        "task-rest_desc-preproc"
 
 
-# rule ciftify_subject_fmri:
-#     input:
-#         os.path.join(
-#             outdir,
-#             "ciftify",
-#             "sub-{subid}",
-#             "MNINonLinear",
-#             "fsaverage_LR32k",
-#             "sub-{subid}.aparc.32k_fs_LR.dlabel.nii",
-#         ),
-#         os.path.join(
-#             outdir,
-#             "fmriprep",
-#             "sub-{subid}",
-#             "func",
-#             "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz",
-#         ),
-#     params:
-#         bids_dir=rawdir,
-#         out_dir=outdir,
-#         fs_license_dir=resourcedir,
-#     output:
-#         os.path.join(
-#             outdir,
-#             "ciftify",
-#             "sub-{subid}",
-#             "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii",
-#         ),
-#     container:
-#         config["containers"]["ciftify"]
-#     shell:
-#         "ciftify_subject_fmri "
-#         "--ciftify-work-dir {params.out_dir}/ciftify "
-#         "{params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz "
-#         "sub-{wildcards.subid} "
-#         "task-rest_desc-preproc"
-
-
-# rule ciftify_atlas:
-#     input:
-#         atlas=os.path.join(
-#             outdir,
-#             "ciftify",
-#             "sub-{subid}",
-#             "MNINonLinear",
-#             "aparc+aseg.nii.gz"
-#         ),
-#         bold=os.path.join(
-#             outdir,
-#             "ciftify",
-#             "sub-{subid}",
-#             "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii",
-#         ),
-#     params:
-#         cifti_dir=os.path.join(outdir, "ciftify"),
-#         workflow_dir=workflowdir,
-#     output:
-#         os.path.join(
-#             outdir,
-#             "ciftify",
-#             "sub-{subid}",
-#             "sub-{subid}.aparcaseg.dscalar.nii"
-#         )
-#     container:
-#         config["containers"]["ciftify"]
-#     shell:
-#         "ciftify_vol_result "
-#         "sub-{wildcards.subid} "
-#         "{input.atlas} "
-#         "{output} "
-#         "--ciftify-work-dir {params.cifti_dir} "
-#         "--integer-labels --resample-nifti"
+rule ciftify_atlas:
+    input:
+        atlas=os.path.join(
+            outdir,
+            "ciftify",
+            "sub-{subid}",
+            "MNINonLinear",
+            "aparc+aseg.nii.gz"
+        ),
+        bold=os.path.join(
+            outdir,
+            "ciftify",
+            "sub-{subid}",
+            "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii",
+        ),
+    params:
+        cifti_dir=os.path.join(outdir, "ciftify"),
+        workflow_dir=workflowdir,
+    output:
+        os.path.join(
+            outdir,
+            "ciftify",
+            "sub-{subid}",
+            "sub-{subid}.aparcaseg.dscalar.nii"
+        )
+    container:
+        config["containers"]["ciftify"]
+    shell:
+        "ciftify_vol_result "
+        "sub-{wildcards.subid} "
+        "{input.atlas} "
+        "{output} "
+        "--ciftify-work-dir {params.cifti_dir} "
+        "--integer-labels --resample-nifti"
 
 rule xcp_d:
     input:
