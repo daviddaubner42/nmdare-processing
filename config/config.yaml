@@ -4,3 +4,4 @@ rootdir: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processi
 containers:
   fmriprep: docker://nipreps/fmriprep:latest
   ciftify: docker://tigrlab/ciftify
+  xcp_d: docker://pennlinc/xcp_d:latest
