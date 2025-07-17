@@ -159,14 +159,14 @@ rule ciftify_subject_fmri:
             "sub-{subid}",
             "MNINonLinear",
             "fsaverage_LR32k",
-            "sub-{subid}.aparc.32k_fs_LR.dlabel.nii",
+            "sub-{subid}.aparc.32k_fs_LR.dlabel.nii"
         ),
         os.path.join(
             outdir,
             "fmriprep",
             "sub-{subid}",
             "func",
-            "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz",
+            "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
         )
     params:
         bids_dir=rawdir,
@@ -177,7 +177,7 @@ rule ciftify_subject_fmri:
             outdir,
             "ciftify",
             "sub-{subid}",
-            "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii",
+            "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii"
         )
     container:
         config["containers"]["ciftify"]
@@ -202,11 +202,11 @@ rule ciftify_atlas:
             outdir,
             "ciftify",
             "sub-{subid}",
-            "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii",
+            "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii"
         )
     params:
         cifti_dir=os.path.join(outdir, "ciftify"),
-        workflow_dir=workflowdir,
+        workflow_dir=workflowdir
     output:
         os.path.join(
             outdir,
