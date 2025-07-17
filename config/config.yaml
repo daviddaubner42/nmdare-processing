@@ -2,6 +2,6 @@ datadir: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/bids
 rootdir: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processing
 
 containers:
-  fmriprep: docker://nipreps/fmriprep:latest
-  ciftify: docker://tigrlab/ciftify
-  xcp_d: docker://pennlinc/xcp_d:latest
+  fmriprep: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processing/.snakemake/singularity/fmriprep.sif
+  ciftify: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processing/.snakemake/singularity/ciftify.simg
+  xcp_d: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processing/.snakemake/singularity/xcpd.sif
