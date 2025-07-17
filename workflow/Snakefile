@@ -221,7 +221,13 @@ rule ciftify_atlas:
         "{input.atlas} "
         "{output} "
         "--ciftify-work-dir {params.cifti_dir} "
-        "--integer-labels --resample-nifti"
+        "--integer-labels --resample-nifti && "
+        "wb_command -cifti-label-import "
+        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dscalar.nii '' "
+        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dlabel.nii && "
+        "mkdir -p {params.outdir}/atlases/sub-{wildcards.subid}/atlas-aparc+aseg && "
+        "cp {params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dlabel.nii "
+        "{params.outdir}/atlases/sub-{wildcards.subid}/atlas-aparc+aseg/atlas-aparc+aseg.dlabel.nii"
 
 rule xcp_d:
     input:
