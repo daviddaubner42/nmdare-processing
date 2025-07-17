@@ -61,57 +61,57 @@ rule all:
         expand(endfiles, subid=subids),
 
 
-rule fmriprep:
-    input:
-        os.path.join(rawdir, "sub-{subid}", "anat", "sub-{subid}_T1w.nii.gz"),
-        os.path.join(rawdir, "sub-{subid}", "anat", "sub-{subid}_T2w.nii.gz"),
-        os.path.join(rawdir, "sub-{subid}", "fmap", "sub-{subid}_magnitude1.nii.gz"),
-        os.path.join(rawdir, "sub-{subid}", "fmap", "sub-{subid}_magnitude2.nii.gz"),
-        os.path.join(rawdir, "sub-{subid}", "fmap", "sub-{subid}_phasediff.nii.gz"),
-        os.path.join(
-            rawdir,
-            "sub-{subid}",
-            "func",
-            "sub-{subid}_task-rest_bold.nii.gz"
-        )
-    params:
-        bids_dir=rawdir,
-        out_dir=outdir,
-        fs_license_dir=resourcedir
-    threads: 8
-    resources:
-        mem='16G',
-        time='12:00:00'
-    output:
-        os.path.join(
-            outdir,
-            "freesurfer",
-            "sub-{subid}",
-            "surf",
-            "rh.thickness"
-        ),
-        os.path.join(
-            outdir,
-            "fmriprep",
-            "sub-{subid}",
-            "func",
-            "sub-{subid}_task-rest_space-fsLR_den-91k_bold.dtseries.nii"
-        )
-    container:
-        config["containers"]["fmriprep"]
-    shell:
-        "rm -rf {params.out_dir}/freesurfer/sub-{wildcards.subid} && "
-        "fmriprep "
-        "{params.bids_dir} {params.out_dir}/fmriprep participant "
-        "--fs-license-file {params.fs_license_dir}/license.txt "
-        "--skip-bids-validation "
-        "--participant_label {wildcards.subid} "
-        "--output-spaces MNI152NLin2009cAsym:res-2 fsLR "
-        "--cifti-output "
-        "--skip-bids-validation "
-        "--nthreads 16 "
-        "--omp-nthreads 16 && "
-        "mv {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold.nii.gz {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
+# rule fmriprep:
+#     input:
+#         os.path.join(rawdir, "sub-{subid}", "anat", "sub-{subid}_T1w.nii.gz"),
+#         os.path.join(rawdir, "sub-{subid}", "anat", "sub-{subid}_T2w.nii.gz"),
+#         os.path.join(rawdir, "sub-{subid}", "fmap", "sub-{subid}_magnitude1.nii.gz"),
+#         os.path.join(rawdir, "sub-{subid}", "fmap", "sub-{subid}_magnitude2.nii.gz"),
+#         os.path.join(rawdir, "sub-{subid}", "fmap", "sub-{subid}_phasediff.nii.gz"),
+#         os.path.join(
+#             rawdir,
+#             "sub-{subid}",
+#             "func",
+#             "sub-{subid}_task-rest_bold.nii.gz"
+#         )
+#     params:
+#         bids_dir=rawdir,
+#         out_dir=outdir,
+#         fs_license_dir=resourcedir
+#     threads: 8
+#     resources:
+#         mem='16G',
+#         time='12:00:00'
+#     output:
+#         os.path.join(
+#             outdir,
+#             "freesurfer",
+#             "sub-{subid}",
+#             "surf",
+#             "rh.thickness"
+#         ),
+#         os.path.join(
+#             outdir,
+#             "fmriprep",
+#             "sub-{subid}",
+#             "func",
+#             "sub-{subid}_task-rest_space-fsLR_den-91k_bold.dtseries.nii"
+#         )
+#     container:
+#         config["containers"]["fmriprep"]
+#     shell:
+#         "rm -rf {params.out_dir}/freesurfer/sub-{wildcards.subid} && "
+#         "fmriprep "
+#         "{params.bids_dir} {params.out_dir}/fmriprep participant "
+#         "--fs-license-file {params.fs_license_dir}/license.txt "
+#         "--skip-bids-validation "
+#         "--participant_label {wildcards.subid} "
+#         "--output-spaces MNI152NLin2009cAsym:res-2 fsLR "
+#         "--cifti-output "
+#         "--skip-bids-validation "
+#         "--nthreads 16 "
+#         "--omp-nthreads 16 && "
+#         "mv {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold.nii.gz {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
 
 
 rule ciftify_recon_all:
