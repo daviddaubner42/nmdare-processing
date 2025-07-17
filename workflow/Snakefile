@@ -146,10 +146,10 @@ rule ciftify_recon_all:
     shell:
         "rm -rf {params.out_dir}/ciftify/sub-{wildcards.subid} && "
         "ciftify_recon_all "
+        "sub-{wildcards.subid} "
         "--ciftify-work-dir {params.out_dir}/ciftify "
         "--fs-subjects-dir {params.out_dir}/fmriprep/sourcedata/freesurfer "
-        "--fs-license {params.fs_license_dir}/license.txt "
-        "sub-{wildcards.subid}"
+        "--fs-license {params.fs_license_dir}/license.txt"
 
 rule ciftify_subject_fmri:
     input:
