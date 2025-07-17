@@ -128,11 +128,10 @@ rule ciftify_recon_all:
     output:
         atlas=os.path.join(
             outdir,
-            "ciftify",
+            "atlases",
             "sub-{subid}",
-            "MNINonLinear",
-            "fsaverage_LR32k",
-            "sub-{subid}.aparc.32k_fs_LR.dlabel.nii"
+            "atlas-aparc+aseg",
+            "atlas-aparc+aseg_space-fsLR_den-32k_dseg.dlabel.nii"
         ),
         # os.path.join(
         #     outdir,
