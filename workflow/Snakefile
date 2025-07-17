@@ -273,7 +273,7 @@ rule xcp_d:
             "xcp_d",
             "sub-{subid}",
             "func",
-            "sub-{subid}_task-rest_space-fsLR_seg-4S156Parcels_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
+            "sub-{subid}_task-rest_space-fsLR_seg-aparc+aseg_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
         )
     container:
         config["containers"]["xcp_d"]
