@@ -46,7 +46,7 @@ endfiles = [
         "sub-{subid}",
         "func",
         "sub-{subid}_task-rest_space-fsLR_seg-aparc+aseg_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
-    ),
+    )
 ]
 
 # subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-")]
@@ -58,7 +58,7 @@ rule all:
     Generates all required outputs
     """
     input:
-        expand(endfiles, subid=subids),
+        expand(endfiles, subid=subids)
 
 
 # rule fmriprep:
@@ -113,14 +113,13 @@ rule all:
 #         "--omp-nthreads 16 && "
 #         "mv {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold.nii.gz {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
 
-
 rule ciftify_recon_all:
     input:
-        os.path.join(outdir, "fmriprep", "sourcedata", "freesurfer", "sub-{subid}", "surf", "rh.thickness"),
+        os.path.join(outdir, "fmriprep", "sourcedata", "freesurfer", "sub-{subid}", "surf", "rh.thickness")
     params:
         bids_dir=rawdir,
         out_dir=outdir,
-        fs_license_dir=resourcedir,
+        fs_license_dir=resourcedir
     threads: 8
     resources:
         mem='16G',
@@ -171,7 +170,7 @@ rule ciftify_subject_fmri:
     params:
         bids_dir=rawdir,
         out_dir=outdir,
-        fs_license_dir=resourcedir,
+        fs_license_dir=resourcedir
     output:
         os.path.join(
             outdir,
