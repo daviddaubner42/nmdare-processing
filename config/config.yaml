@@ -3,5 +3,5 @@ rootdir: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processi
 
 containers:
   fmriprep: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processing/.snakemake/singularity/fmriprep.sif
-  ciftify: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processing/.snakemake/singularity/ciftify.simg
+  ciftify: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processing/.snakemake/singularity/ciftify.sif
   xcp_d: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processing/.snakemake/singularity/xcpd.sif
