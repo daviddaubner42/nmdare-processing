@@ -125,7 +125,7 @@ rule ciftify_recon_all:
         mem='16G',
         time='12:00:00'
     output:
-        atlas=os.path.join(
+        os.path.join(
             outdir,
             "ciftify",
             "sub-{subid}",
