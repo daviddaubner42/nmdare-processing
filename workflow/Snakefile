@@ -140,9 +140,9 @@ rule xcp_d:
         out_dir=outdir,
         fs_license_dir=resourcedir,
         workflow_dir=workflowdir,
-    threads: 8
+    threads: 16
     resources:
-        mem='16G',
+        mem='32G',
         time='06:00:00'
     output:
         os.path.join(
@@ -162,7 +162,7 @@ rule xcp_d:
     container:
         config["containers"]["xcp_d"]
     shell:
-        "rm -rf {params.workflow_dir}/working_dir && "
+        "rm -rf {params.workflow_dir}/working_dir {params.out_dir}/xcp_d/atlases && "
         "xcp_d "
         "{params.out_dir}/fmriprep "
         "{params.out_dir}/xcp_d "
@@ -177,8 +177,7 @@ rule xcp_d:
         "--atlases DesikanKilliany "
         "--head_radius 40 "
         "--fs-license-file {params.fs_license_dir}/license.txt "
-        "--smoothing 6 "
-        "--n_cpus 16"
+        "--smoothing 6"
 
 # rule calculate_fcd_4S156:
 #     input:
