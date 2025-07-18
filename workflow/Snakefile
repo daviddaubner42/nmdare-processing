@@ -173,7 +173,7 @@ rule xcp_d:
         "--mode linc "
         "--despike "
         "--nuisance-regressors acompcor "
-        "--datasets dk={params.fs_license_dir} "
+        "--datasets dk={params.fs_license_dir}/atlas-DesikanKilliany "
         "--atlases DesikanKilliany "
         "--head_radius 40 "
         "--fs-license-file {params.fs_license_dir}/license.txt "
