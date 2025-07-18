@@ -72,9 +72,9 @@ endfiles = [
     # )
 ]
 
-subids = [subid[4:] for subid in os.listdir(os.path.join(outdir, "xcp_d")) if os.path.exists(os.path.join(outdir, "xcp_d", f"{subid}", "func", f"{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"))]
+# subids = [subid[4:] for subid in os.listdir(os.path.join(outdir, "xcp_d")) if os.path.exists(os.path.join(outdir, "xcp_d", f"{subid}", "func", f"{subid}_task-rest_space-fsLR_seg-Glasser_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"))]
 # subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-RS")]
-# subids = ["LENMDA002"]
+subids = ["LENMDA002"]
 
 
 rule all:
