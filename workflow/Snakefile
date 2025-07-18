@@ -40,14 +40,14 @@ endfiles = [
         "xcp_d",
         "sub-{subid}",
         "func",
-        "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_seg-DesikanKilliany_stat-mean_timeseries.tsv"
+        "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_res-2_seg-DesikanKilliany_stat-mean_timeseries.tsv"
     ),
     os.path.join(
         outdir,
         "xcp_d",
         "sub-{subid}",
         "func",
-        "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_seg-DesikanKilliany_stat-pearsoncorrelation_relmat.tsv"
+        "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_res-2_seg-DesikanKilliany_stat-pearsoncorrelation_relmat.tsv"
     )
     # os.path.join(
     #     outdir,
