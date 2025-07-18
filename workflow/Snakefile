@@ -162,7 +162,7 @@ rule xcp_d:
     container:
         config["containers"]["xcp_d"]
     shell:
-        "rm -rf {params.workflow_dir}/working_dir {params.out_dir}/xcp_d/atlases && "
+        "rm -rf {params.workflow_dir}/working_dir && "
         "xcp_d "
         "{params.out_dir}/fmriprep "
         "{params.out_dir}/xcp_d "
