@@ -6,7 +6,7 @@ configfile: "config/config.yaml"
 report: "workflow.rst"
 
 
-# conda: "envs/environment.yaml"
+conda: "envs/environment.yaml"
 
 rawdir = join(config["datadir"])
 outdir = join(config["datadir"], "derivatives")
@@ -38,19 +38,19 @@ endfiles = [
         "xcp_d",
         "sub-{subid}",
         "func",
-        "sub-{subid}_task-rest_space-fsLR_seg-aparc+aseg_den-91k_stat-mean_timeseries.ptseries.nii"
+        "sub-{subid}_task-rest_space-fsLR_seg-DesikanKilliany_den-91k_stat-mean_timeseries.ptseries.nii"
     ),
     os.path.join(
         outdir,
         "xcp_d",
         "sub-{subid}",
         "func",
-        "sub-{subid}_task-rest_space-fsLR_seg-aparc+aseg_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
+        "sub-{subid}_task-rest_space-fsLR_seg-DesikanKilliany_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
     )
 ]
 
 # subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-")]
-subids = ["LENMDA002"]
+subids = ["LEGK010"]
 
 
 rule all:
@@ -113,124 +113,347 @@ rule all:
 #         "--omp-nthreads 16 && "
 #         "mv {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold.nii.gz {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
 
-rule ciftify_recon_all:
+rule register_subcortical_segmentation:
     input:
-        os.path.join(outdir, "fmriprep", "sourcedata", "freesurfer", "sub-{subid}", "surf", "rh.thickness")
+        os.path.join(
+            outdir,
+            "fmriprep",
+            "sourcedata",
+            "freesurfer",
+            "sub-{subid}",
+            "mri",
+            "aseg.mgz"
+        )
     params:
-        bids_dir=rawdir,
-        out_dir=outdir,
-        fs_license_dir=resourcedir
+        conversion_dir= os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "subcortical"
+        ),
+        fs_dir=os.path.join(
+            outdir,
+            "fmriprep",
+            "sourcedata",
+            "freesurfer"
+        )
     threads: 8
     resources:
-        mem='16G',
+        mem='32G',
         time='12:00:00'
     output:
         os.path.join(
             outdir,
-            "ciftify",
+            "conversion",
             "sub-{subid}",
-            "MNINonLinear",
-            "fsaverage_LR32k",
-            "sub-{subid}.aparc.32k_fs_LR.dlabel.nii"
-        ),
-        os.path.join(
-            outdir,
-            "ciftify",
-            "sub-{subid}",
-            "MNINonLinear",
-            "aparc+aseg.nii.gz"
+            "subcortical",
+            "aseg_space-MNI152NonLin_res-2mm.nii.gz"
         )
     container:
-        config["containers"]["ciftify"]
+        config["containers"]["freesurfer"]
     shell:
-        "rm -rf {params.out_dir}/ciftify/sub-{wildcards.subid} && "
-        "ciftify_recon_all "
-        "--ciftify-work-dir {params.out_dir}/ciftify "
-        "--fs-subjects-dir {params.out_dir}/fmriprep/sourcedata/freesurfer "
-        "--fs-license {params.fs_license_dir}/license.txt "
-        "--verbose "
-        "sub-{wildcards.subid}"
+        "mkdir -p {params.conversion_dir} && "
+        "export SUBJECTS_DIR={params.fs_dir} && "
+        "mri_cvs_register --mov sub-{wildcards.subid} --mni && "
+        "mri_convert {params.fs_dir}/sub-{wildcards.subid}/cvs/final_CVSmorphed_tocvs_avg35_inMNI152_aseg.mgz {output}"
 
-rule ciftify_subject_fmri:
+rule prepare_subcortical_segmentation_for_merging:
     input:
         os.path.join(
             outdir,
-            "ciftify",
+            "conversion",
             "sub-{subid}",
-            "MNINonLinear",
-            "fsaverage_LR32k",
-            "sub-{subid}.aparc.32k_fs_LR.dlabel.nii"
-        ),
-        os.path.join(
-            outdir,
-            "fmriprep",
-            "sub-{subid}",
-            "func",
-            "sub-{subid}_task-rest_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold.nii.gz"
+            "subcortical",
+            "aseg_space-MNI152NonLin_res-2mm.nii.gz"
         )
     params:
-        bids_dir=rawdir,
-        out_dir=outdir,
-        fs_license_dir=resourcedir
+        conversion_dir= os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "subcortical"
+        ),
+        resource_dir=resourcedir
+    threads: 8
+    resources:
+        mem='1G',
+        time='1:00:00'
     output:
         os.path.join(
             outdir,
-            "ciftify",
+            "conversion",
             "sub-{subid}",
-            "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii"
+            "subcortical",
+            "aseg_space-MNI152NLin2009cAsym_res-2mm_dseg.nii.gz"
         )
     container:
-        config["containers"]["ciftify"]
+        config["containers"]["wb_command"]
     shell:
-        "ciftify_subject_fmri "
-        "--ciftify-work-dir {params.out_dir}/ciftify "
-        "{params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz "
-        "sub-{wildcards.subid} "
-        "task-rest_desc-preproc"
+        "wb_command -volume-label-import "
+        "{input} "
+        "{params.resource_dir}/FreeSurferAllLut.txt "
+        "{params.conversion_dir}/aseg_space-MNI152NonLin_res-2mm_label.nii.gz "
+        "-drop-unused-labels && "
+        "wb_command -volume-resample "
+        "{params.conversion_dir}/aseg_space-MNI152NonLin_res-2mm_label.nii.gz "
+        "{params.resource_dir}/MNI152_T1_2mm.nii.gz "
+        "ENCLOSING_VOXEL "
+        "{output}"
 
-
-rule ciftify_atlas:
+rule convert_aparc_to_gifti:
     input:
-        atlas=os.path.join(
+        lh=os.path.join(
             outdir,
-            "ciftify",
+            "fmriprep",
+            "sourcedata",
+            "freesurfer",
             "sub-{subid}",
-            "MNINonLinear",
-            "aparc+aseg.nii.gz"
+            "label",
+            "lh.aparc.annot"
         ),
-        bold=os.path.join(
+        rh=os.path.join(
             outdir,
-            "ciftify",
+            "fmriprep",
+            "sourcedata",
+            "freesurfer",
             "sub-{subid}",
-            "MNINonLinear/Results/task-rest_desc-preproc/task-rest_desc-preproc_Atlas_s0.dtseries.nii"
+            "label",
+            "rh.aparc.annot"
         )
     params:
-        cifti_dir=os.path.join(outdir, "ciftify"),
+        conversion_dir=os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical"
+        ),
+        resource_dir=resourcedir,
+        fs_dir=os.path.join(
+            outdir,
+            "fmriprep",
+            "sourcedata",
+            "freesurfer"
+        )
+    threads: 8
+    resources:
+        mem='1G',
+        time='1:00:00'
+    output:
+        lh=os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "lh.aparc.gii"
+        ),
+        rh=os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "rh.aparc.gii"
+        )
+    container:
+        config["containers"]["freesurfer"]
+    shell:
+        "mris_convert --annot {input.lh} "
+        "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.midthickness "
+        "{output.lh} && "
+        "mris_convert --annot {input.rh} "
+        "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.midthickness "
+        "{output.rh}"
+
+rule resample_cortical_labels:
+    input:
+        lh=os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "lh.aparc.gii"
+        ),
+        rh=os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "rh.aparc.gii"
+        )
+    params:
+        conversion_dir=os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical"
+        ),
+        resource_dir=resourcedir,
+        fs_dir=os.path.join(
+            outdir,
+            "fmriprep",
+            "sourcedata",
+            "freesurfer"
+        ),
         workflow_dir=workflowdir
+    threads: 8
+    resources:
+        mem='4G',
+        time='1:00:00'
+    output:
+        os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "aparc.rh.32k_fs_LR.label.gii"
+        ),
+        os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "aparc.lh.32k_fs_LR.label.gii"
+        )
+    container:
+        config["containers"]["wb_command"]
+    shell:
+        "mkdir -p {params.conversion_dir} && "
+
+        "{params.workflow_dir}/scripts/wb_shortcuts -freesurfer-resample-prep "
+        "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.white "
+        "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.pial "
+        "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.sphere.reg "
+        "{params.resource_dir}/spheres/fs_LR-deformed_to-fsaverage.L.sphere.32k_fs_LR.surf.gii "
+        "{params.conversion_dir}/lh.midthickness.surf.gii "
+        "{params.conversion_dir}/lh.midthickness.32k_fs_LR.surf.gii "
+        "{params.conversion_dir}/lh.sphere.reg.surf.gii && "
+
+        "{params.workflow_dir}/scripts/wb_shortcuts -freesurfer-resample-prep "
+        "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.white "
+        "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.pial "
+        "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.sphere.reg "
+        "{params.resource_dir}/spheres/fs_LR-deformed_to-fsaverage.R.sphere.32k_fs_LR.surf.gii "
+        "{params.conversion_dir}/rh.midthickness.surf.gii "
+        "{params.conversion_dir}/rh.midthickness.32k_fs_LR.surf.gii "
+        "{params.conversion_dir}/rh.sphere.reg.surf.gii && "
+
+        "wb_command -label-resample "
+        "{input.lh} "
+        "{params.conversion_dir}/lh.sphere.reg.surf.gii "
+        "{params.resource_dir}/spheres/fs_LR-deformed_to-fsaverage.L.sphere.32k_fs_LR.surf.gii "
+        "ADAP_BARY_AREA "
+        "{params.conversion_dir}/aparc.lh.32k_fs_LR.label.gii "
+        "-area-surfs "
+        "{params.conversion_dir}/lh.midthickness.surf.gii "
+        "{params.conversion_dir}/lh.midthickness.32k_fs_LR.surf.gii && "
+
+        "wb_command -label-resample "
+        "{input.rh} "
+        "{params.conversion_dir}/rh.sphere.reg.surf.gii "
+        "{params.resource_dir}/spheres/fs_LR-deformed_to-fsaverage.R.sphere.32k_fs_LR.surf.gii "
+        "ADAP_BARY_AREA "
+        "{params.conversion_dir}/aparc.rh.32k_fs_LR.label.gii "
+        "-area-surfs "
+        "{params.conversion_dir}/rh.midthickness.surf.gii "
+        "{params.conversion_dir}/rh.midthickness.32k_fs_LR.surf.gii && "
+
+        "python {params.workflow_dir}/scripts/create_remap.txt "
+        "-input {params.conversion_dir}/aparc.rh.32k_fs_LR.label.gii "
+        "-output {params.conversion_dir}/remap.txt && "
+
+        "wb_command -label-modify-keys {params.conversion_dir}/aparc.rh.32k_fs_LR.label.gii "
+        "{params.conversion_dir}/remap.txt "
+        "{params.conversion_dir}/aparc.rh.32k_fs_LR.label.gii && "
+
+        "wb_command -gifti-label-add-prefix "
+        "{params.conversion_dir}/aparc.lh.32k_fs_LR.label.gii "
+        "lh_ "
+        "{params.conversion_dir}/aparc.lh.32k_fs_LR.label.gii && "
+
+        "wb_command -gifti-label-add-prefix "
+        "{params.conversion_dir}/aparc.rh.32k_fs_LR.label.gii "
+        "rh_ "
+        "{params.conversion_dir}/aparc.rh.32k_fs_LR.label.gii && "
+
+rule combine_into_cifti_label:
+    input:
+        rh=os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "aparc.rh.32k_fs_LR.label.gii"
+        ),
+        lh=os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "aparc.lh.32k_fs_LR.label.gii"
+        ),
+        vol=os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "subcortical",
+            "aseg_space-MNI152NLin2009cAsym_res-2mm_dseg.nii.gz"
+        )
+    params:
+        conversion_dir=os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}"
+        ),
+        resource_dir=resourcedir,
+        workflow_dir=workflowdir,
+        out_dir=outdir
+    threads: 8
+    resources:
+        mem='4G',
+        time='1:00:00'
     output:
         os.path.join(
             outdir,
             "atlases",
             "sub-{subid}",
-            "atlas-aparc+aseg",
-            "atlas-aparc+aseg_space-fsLR_den-32k_dseg.dlabel.nii"
+            "atlas-DesikanKilliany",
+            "atlas-DesikanKilliany_space-fsLR_den-32k_dseg.dlabel.nii"
+        ),
+        os.path.join(
+            outdir,
+            "atlases",
+            "sub-{subid}",
+            "atlas-DesikanKilliany",
+            "atlas-DesikanKilliany_dseg.tsv"
+        ),
+        os.path.join(
+            outdir,
+            "atlases",
+            "sub-{subid}",
+            "atlas-DesikanKilliany",
+            "dataset_description.json"
         )
     container:
-        config["containers"]["ciftify"]
+        config["containers"]["wb_command"]
     shell:
-        "ciftify_vol_result "
-        "sub-{wildcards.subid} "
-        "{input.atlas} "
-        "{output} "
-        "--ciftify-work-dir {params.cifti_dir} "
-        "--integer-labels --resample-nifti && "
-        "wb_command -cifti-label-import "
-        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dscalar.nii '' "
-        "{params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dlabel.nii && "
-        "mkdir -p {params.outdir}/atlases/sub-{wildcards.subid}/atlas-aparc+aseg && "
-        "cp {params.cifti_dir}/sub-{wildcards.subid}/sub-{wildcards.subid}.aparcaseg.dlabel.nii "
-        "{params.outdir}/atlases/sub-{wildcards.subid}/atlas-aparc+aseg/atlas-aparc+aseg_space-fsLR_den-32k_dseg.dlabel.nii"
+        "wb_command -cifti-create-label "
+        "{params.conversion_dir}/cortical/aparc.32k_fs_LR.dlabel.nii "
+        "-left-label {input.lh} "
+        "-right-label {input.rh} && "
 
+        "mkdir -p {params.out_dir}/atlases/sub-{wildcards.subid}/atlas-DesikanKilliany && "
+
+        "wb_command -cifti-create-dense-from-template {params.resource_dir}/91282_Greyordinates.dscalar.nii "
+        "{params.out_dir}/atlases/sub-{wildcards.subid}/atlas-DesikanKilliany/atlas-DesikanKilliany_space-fsLR_den-32k_dseg.dlabel.nii "
+        "-volume-all {input.vol} "
+        "-cifti {params.conversion_dir}/cortical/aparc.32k_fs_LR.dlabel.nii "
+        "-label-collision SURFACES_FIRST && "
+
+        "python {params.workflow_dir}/scripts/create_atlas_info.py "
+        "-file_atlas {params.out_dir}/atlases/sub-{wildcards.subid}/atlas-DesikanKilliany/atlas-DesikanKilliany_space-fsLR_den-32k_dseg.dlabel.nii "
+        "-output {params.out_dir}/atlases/sub-{wildcards.subid}/atlas-DesikanKilliany/atlas-DesikanKilliany_dseg.tsv && "
+
+        "cp {params.resource_dir}/dataset_description.json {params.out_dir}/atlases/sub-{wildcards.subid}/atlas-DesikanKilliany/dataset_description.json"
+    
 rule xcp_d:
     input:
         os.path.join(
@@ -244,8 +467,22 @@ rule xcp_d:
             outdir,
             "atlases",
             "sub-{subid}",
-            "atlas-aparc+aseg",
-            "atlas-aparc+aseg_space-fsLR_den-32k_dseg.dlabel.nii"
+            "atlas-DesikanKilliany",
+            "atlas-DesikanKilliany_space-fsLR_den-32k_dseg.dlabel.nii"
+        ),
+        os.path.join(
+            outdir,
+            "atlases",
+            "sub-{subid}",
+            "atlas-DesikanKilliany",
+            "atlas-DesikanKilliany_dseg.tsv"
+        ),
+        os.path.join(
+            outdir,
+            "atlases",
+            "sub-{subid}",
+            "atlas-DesikanKilliany",
+            "dataset_description.json"
         )
     params:
         out_dir=outdir,
@@ -255,26 +492,26 @@ rule xcp_d:
             outdir,
             "atlases",
             "sub-{subid}",
-            "atlas-aparc+aseg"
+            "atlas-DesikanKilliany"
         )
     threads: 8
     resources:
-        mem='16G',
-        time='06:00:00'
+        mem='32G',
+        time='12:00:00'
     output:
         os.path.join(
             outdir,
             "xcp_d",
             "sub-{subid}",
             "func",
-            "sub-{subid}_task-rest_space-fsLR_seg-aparc+aseg_den-91k_stat-mean_timeseries.ptseries.nii"
+            "sub-{subid}_task-rest_space-fsLR_seg-DesikanKilliany_den-91k_stat-mean_timeseries.ptseries.nii"
         ),
         os.path.join(
             outdir,
             "xcp_d",
             "sub-{subid}",
             "func",
-            "sub-{subid}_task-rest_space-fsLR_seg-aparc+aseg_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
+            "sub-{subid}_task-rest_space-fsLR_seg-DesikanKilliany_den-91k_stat-pearsoncorrelation_boldmap.pconn.nii"
         )
     container:
         config["containers"]["xcp_d"]
@@ -288,8 +525,8 @@ rule xcp_d:
         "--mode linc "
         "--despike "
         "--nuisance-regressors acompcor "
-        "--datasets aparc+aseg={params.atlas_dir} "
-        "--atlases aparc+aseg "
+        "--datasets DesikanKilliany={params.atlas_dir} "
+        "--atlases DesikanKilliany "
         "--head_radius 40 "
         "--fs-license-file {params.fs_license_dir}/license.txt "
         "--smoothing 6 "

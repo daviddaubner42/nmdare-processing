@@ -1,7 +1,11 @@
-datadir: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/bids
-rootdir: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processing
+# datadir: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/bids
+# rootdir: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processing
+
+datadir: /Users/brainsimulation/Desktop/NMDARE/bids
+rootdir: /Users/brainsimulation/Desktop/NMDARE/nmdare-processing
 
 containers:
   fmriprep: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processing/.snakemake/singularity/fmriprep.sif
-  ciftify: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processing/.snakemake/singularity/ciftify.sif
+  freesurfer: docker://freesurfer/freesurfer:latest
   xcp_d: /data/cephfs-1/work/groups/ritter/users/dada15_c/NMDARE/nmdare-processing/.snakemake/singularity/xcpd.sif
+  wb_command: docker://vnmd/connectomeworkbench_2.0.1:latest
