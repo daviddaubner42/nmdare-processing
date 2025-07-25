@@ -5,12 +5,12 @@ from os.path import join
 configfile: "config/config.yaml"
 report: "workflow.rst"
 
-
-conda: "envs/environment.yaml"
+# conda: "envs/environment.yaml"
 
 rawdir = join(config["datadir"])
 outdir = join(config["datadir"], "derivatives")
 
+environmentdir = join(config["rootdir"], "envs")
 resourcedir = join(config["rootdir"], "resources")
 workflowdir = join(config["rootdir"], "workflow")
 
@@ -136,7 +136,8 @@ rule register_subcortical_segmentation:
             "fmriprep",
             "sourcedata",
             "freesurfer"
-        )
+        ),
+        resource_dir=resourcedir
     threads: 8
     resources:
         mem='32G',
@@ -152,6 +153,7 @@ rule register_subcortical_segmentation:
     container:
         config["containers"]["freesurfer"]
     shell:
+        "export FS_LICENSE={params.resource_dir}/license.txt && "
         "mkdir -p {params.conversion_dir} && "
         "export SUBJECTS_DIR={params.fs_dir} && "
         "mri_cvs_register --mov sub-{wildcards.subid} --mni && "
@@ -256,6 +258,7 @@ rule convert_aparc_to_gifti:
     container:
         config["containers"]["freesurfer"]
     shell:
+        "export FS_LICENSE={params.resource_dir}/license.txt && "
         "mris_convert --annot {input.lh} "
         "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.midthickness "
         "{output.lh} && "
@@ -318,7 +321,7 @@ rule resample_cortical_labels:
     shell:
         "mkdir -p {params.conversion_dir} && "
 
-        "{params.workflow_dir}/scripts/wb_shortcuts -freesurfer-resample-prep "
+        "{params.workflow_dir}/scripts/wb_shortcuts.sh -freesurfer-resample-prep "
         "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.white "
         "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.pial "
         "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.sphere.reg "
@@ -327,7 +330,7 @@ rule resample_cortical_labels:
         "{params.conversion_dir}/lh.midthickness.32k_fs_LR.surf.gii "
         "{params.conversion_dir}/lh.sphere.reg.surf.gii && "
 
-        "{params.workflow_dir}/scripts/wb_shortcuts -freesurfer-resample-prep "
+        "{params.workflow_dir}/scripts/wb_shortcuts.sh -freesurfer-resample-prep "
         "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.white "
         "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.pial "
         "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.sphere.reg "
@@ -354,12 +357,99 @@ rule resample_cortical_labels:
         "{params.conversion_dir}/aparc.rh.32k_fs_LR.label.gii "
         "-area-surfs "
         "{params.conversion_dir}/rh.midthickness.surf.gii "
-        "{params.conversion_dir}/rh.midthickness.32k_fs_LR.surf.gii && "
+        "{params.conversion_dir}/rh.midthickness.32k_fs_LR.surf.gii"
 
-        "python {params.workflow_dir}/scripts/create_remap.txt "
+rule generate_remap:
+    input:
+        os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "aparc.rh.32k_fs_LR.label.gii"
+        )
+    params:
+        conversion_dir=os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical"
+        ),
+        workflow_dir=workflowdir
+    threads: 8
+    resources:
+        mem='1G',
+        time='1:00:00'
+    output:
+        os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "remap.txt"
+        )
+    conda:
+        os.path.join(
+            environmentdir,
+            "environment.yaml"
+        )
+    shell:
+        "python {params.workflow_dir}/scripts/create_remap.py "
         "-input {params.conversion_dir}/aparc.rh.32k_fs_LR.label.gii "
-        "-output {params.conversion_dir}/remap.txt && "
+        "-output {params.conversion_dir}/remap.txt"
 
+rule fix_cortical_labels:
+    input:
+        os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "remap.txt"
+        ),
+        os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "aparc.rh.32k_fs_LR.label.gii"
+        ),
+        os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "aparc.lh.32k_fs_LR.label.gii"
+        )
+    params:
+        conversion_dir=os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical"
+        )
+    threads: 8
+    resources:
+        mem='1G',
+        time='1:00:00'
+    output:
+        os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "rh_seg-aparc_den-32k_fs_LR.label.gii"
+        ),
+        os.path.join(
+            outdir,
+            "conversion",
+            "sub-{subid}",
+            "cortical",
+            "lh_seg-aparc_den-32k_fs_LR.label.gii"
+        )
+    container:
+        config["containers"]["wb_command"]
+    shell:
         "wb_command -label-modify-keys {params.conversion_dir}/aparc.rh.32k_fs_LR.label.gii "
         "{params.conversion_dir}/remap.txt "
         "{params.conversion_dir}/aparc.rh.32k_fs_LR.label.gii && "
@@ -367,12 +457,13 @@ rule resample_cortical_labels:
         "wb_command -gifti-label-add-prefix "
         "{params.conversion_dir}/aparc.lh.32k_fs_LR.label.gii "
         "lh_ "
-        "{params.conversion_dir}/aparc.lh.32k_fs_LR.label.gii && "
+        "{params.conversion_dir}/lh_seg-aparc_den-32k_fs_LR.label.gii && "
 
         "wb_command -gifti-label-add-prefix "
         "{params.conversion_dir}/aparc.rh.32k_fs_LR.label.gii "
         "rh_ "
-        "{params.conversion_dir}/aparc.rh.32k_fs_LR.label.gii && "
+        "{params.conversion_dir}/rh_seg-aparc_den-32k_fs_LR.label.gii"
+    
 
 rule combine_into_cifti_label:
     input:
@@ -381,14 +472,14 @@ rule combine_into_cifti_label:
             "conversion",
             "sub-{subid}",
             "cortical",
-            "aparc.rh.32k_fs_LR.label.gii"
+            "rh_seg-aparc_den-32k_fs_LR.label.gii"
         ),
         lh=os.path.join(
             outdir,
             "conversion",
             "sub-{subid}",
             "cortical",
-            "aparc.lh.32k_fs_LR.label.gii"
+            "lh_seg-aparc_den-32k_fs_LR.label.gii"
         ),
         vol=os.path.join(
             outdir,
@@ -417,20 +508,6 @@ rule combine_into_cifti_label:
             "sub-{subid}",
             "atlas-DesikanKilliany",
             "atlas-DesikanKilliany_space-fsLR_den-32k_dseg.dlabel.nii"
-        ),
-        os.path.join(
-            outdir,
-            "atlases",
-            "sub-{subid}",
-            "atlas-DesikanKilliany",
-            "atlas-DesikanKilliany_dseg.tsv"
-        ),
-        os.path.join(
-            outdir,
-            "atlases",
-            "sub-{subid}",
-            "atlas-DesikanKilliany",
-            "dataset_description.json"
         )
     container:
         config["containers"]["wb_command"]
@@ -446,10 +523,48 @@ rule combine_into_cifti_label:
         "{params.out_dir}/atlases/sub-{wildcards.subid}/atlas-DesikanKilliany/atlas-DesikanKilliany_space-fsLR_den-32k_dseg.dlabel.nii "
         "-volume-all {input.vol} "
         "-cifti {params.conversion_dir}/cortical/aparc.32k_fs_LR.dlabel.nii "
-        "-label-collision SURFACES_FIRST && "
+        "-label-collision SURFACES_FIRST"
 
+rule create_atlas_info:
+    input:
+        os.path.join(
+            outdir,
+            "atlases",
+            "sub-{subid}",
+            "atlas-DesikanKilliany",
+            "atlas-DesikanKilliany_space-fsLR_den-32k_dseg.dlabel.nii"
+        )
+    params:
+        resource_dir=resourcedir,
+        workflow_dir=workflowdir,
+        out_dir=outdir
+    threads: 8
+    resources:
+        mem='1G',
+        time='1:00:00'
+    output:
+        os.path.join(
+            outdir,
+            "atlases",
+            "sub-{subid}",
+            "atlas-DesikanKilliany",
+            "atlas-DesikanKilliany_dseg.tsv"
+        ),
+        os.path.join(
+            outdir,
+            "atlases",
+            "sub-{subid}",
+            "atlas-DesikanKilliany",
+            "dataset_description.json"
+        )
+    conda:
+        os.path.join(
+            environmentdir,
+            "environment.yaml"
+        )
+    shell:
         "python {params.workflow_dir}/scripts/create_atlas_info.py "
-        "-file_atlas {params.out_dir}/atlases/sub-{wildcards.subid}/atlas-DesikanKilliany/atlas-DesikanKilliany_space-fsLR_den-32k_dseg.dlabel.nii "
+        "-atlas_file {params.out_dir}/atlases/sub-{wildcards.subid}/atlas-DesikanKilliany/atlas-DesikanKilliany_space-fsLR_den-32k_dseg.dlabel.nii "
         "-output {params.out_dir}/atlases/sub-{wildcards.subid}/atlas-DesikanKilliany/atlas-DesikanKilliany_dseg.tsv && "
 
         "cp {params.resource_dir}/dataset_description.json {params.out_dir}/atlases/sub-{wildcards.subid}/atlas-DesikanKilliany/dataset_description.json"

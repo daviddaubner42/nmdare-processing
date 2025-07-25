@@ -15,7 +15,7 @@ label_dict = axes[0].label[0]
 label_df = pd.DataFrame({"index": [], "label": []})
 
 for i, t in label_dict.items():
-    if i > 1:
-        label_df.loc[i-2] = [i-1, t[0]]
+    if i > 0:
+        label_df.loc[i] = [i, t[0]]
 
 label_df.to_csv(args.output, sep='\t', index=False)

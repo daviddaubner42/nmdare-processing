@@ -6,7 +6,7 @@ parser.add_argument("-input", type=str, help="Path to the label GIFTI file")
 parser.add_argument("-output", type=str, help="Path to the label GIFTI file")
 args = parser.parse_args()
 
-rh = nib.load(args.filename)
+rh = nib.load(args.input)
 
 og_keys = rh.labeltable.get_labels_as_dict().keys()
 
