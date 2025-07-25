@@ -57,8 +57,8 @@ endfiles = [
     )
 ]
 
-# subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-")]
-subids = ["LEGK010"]
+subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-")]
+# subids = ["LEGK010"]
 
 
 rule all:
