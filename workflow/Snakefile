@@ -127,6 +127,7 @@ rule fmriprep:
         "--cifti-output "
         "--skip-bids-validation "
         "--nthreads 16 "
+        "--ignore t2w "
         "--omp-nthreads 16 && "
         "mv {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold.nii.gz {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
 
