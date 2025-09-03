@@ -97,6 +97,24 @@ rule fmriprep:
             "sub-{subid}",
             "func",
             "sub-{subid}_task-rest_space-fsLR_den-91k_bold.dtseries.nii"
+        ),
+        os.path.join(
+            outdir,
+            "fmriprep",
+            "sourcedata",
+            "freesurfer",
+            "sub-{subid}",
+            "label",
+            "lh.aparc.annot"
+        ),
+        os.path.join(
+            outdir,
+            "fmriprep",
+            "sourcedata",
+            "freesurfer",
+            "sub-{subid}",
+            "label",
+            "rh.aparc.annot"
         )
     container:
         config["containers"]["fmriprep"]
