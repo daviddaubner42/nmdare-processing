@@ -35,17 +35,24 @@ endfiles = [
     # )
     os.path.join(
         outdir,
-        "conversion",
+        "freesurfer",
         "sub-{subid}",
-        "cortical",
-        "aparc.rh.32k_fs_LR.label.gii"
+        "surf",
+        "rh.thickness"
+    ),
+    os.path.join(
+        outdir,
+        "fmriprep",
+        "sub-{subid}",
+        "func",
+        "sub-{subid}_task-rest_space-fsLR_den-91k_bold.dtseries.nii"
     ),
     os.path.join(
         outdir,
         "conversion",
         "sub-{subid}",
-        "cortical",
-        "aparc.lh.32k_fs_LR.label.gii"
+        "subcortical",
+        "aseg_space-MNI152NonLin_res-2mm.nii.gz"
     )
 ]
 
@@ -97,24 +104,6 @@ rule fmriprep:
             "sub-{subid}",
             "func",
             "sub-{subid}_task-rest_space-fsLR_den-91k_bold.dtseries.nii"
-        ),
-        os.path.join(
-            outdir,
-            "fmriprep",
-            "sourcedata",
-            "freesurfer",
-            "sub-{subid}",
-            "label",
-            "lh.aparc.annot"
-        ),
-        os.path.join(
-            outdir,
-            "fmriprep",
-            "sourcedata",
-            "freesurfer",
-            "sub-{subid}",
-            "label",
-            "rh.aparc.annot"
         )
     container:
         config["containers"]["fmriprep"]
@@ -178,205 +167,205 @@ rule register_subcortical_segmentation:
         "mri_cvs_register --mov sub-{wildcards.subid} --mni && "
         "mri_convert {params.fs_dir}/sub-{wildcards.subid}/cvs/final_CVSmorphed_tocvs_avg35_inMNI152_aseg.mgz {output}"
 
-rule prepare_subcortical_segmentation_for_merging:
-    input:
-        os.path.join(
-            outdir,
-            "conversion",
-            "sub-{subid}",
-            "subcortical",
-            "aseg_space-MNI152NonLin_res-2mm.nii.gz"
-        )
-    params:
-        conversion_dir= os.path.join(
-            outdir,
-            "conversion",
-            "sub-{subid}",
-            "subcortical"
-        ),
-        resource_dir=resourcedir
-    threads: 8
-    resources:
-        mem='1G',
-        time='1:00:00'
-    output:
-        os.path.join(
-            outdir,
-            "conversion",
-            "sub-{subid}",
-            "subcortical",
-            "aseg_space-MNI152NLin2009cAsym_res-2mm_dseg.nii.gz"
-        )
-    container:
-        config["containers"]["wb_command"]
-    shell:
-        "wb_command -volume-label-import "
-        "{input} "
-        "{params.resource_dir}/FreeSurferAllLut.txt "
-        "{params.conversion_dir}/aseg_space-MNI152NonLin_res-2mm_label.nii.gz "
-        "-drop-unused-labels && "
-        "wb_command -volume-resample "
-        "{params.conversion_dir}/aseg_space-MNI152NonLin_res-2mm_label.nii.gz "
-        "{params.resource_dir}/MNI152_T1_2mm.nii.gz "
-        "ENCLOSING_VOXEL "
-        "{output}"
+# rule prepare_subcortical_segmentation_for_merging:
+#     input:
+#         os.path.join(
+#             outdir,
+#             "conversion",
+#             "sub-{subid}",
+#             "subcortical",
+#             "aseg_space-MNI152NonLin_res-2mm.nii.gz"
+#         )
+#     params:
+#         conversion_dir= os.path.join(
+#             outdir,
+#             "conversion",
+#             "sub-{subid}",
+#             "subcortical"
+#         ),
+#         resource_dir=resourcedir
+#     threads: 8
+#     resources:
+#         mem='1G',
+#         time='1:00:00'
+#     output:
+#         os.path.join(
+#             outdir,
+#             "conversion",
+#             "sub-{subid}",
+#             "subcortical",
+#             "aseg_space-MNI152NLin2009cAsym_res-2mm_dseg.nii.gz"
+#         )
+#     container:
+#         config["containers"]["wb_command"]
+#     shell:
+#         "wb_command -volume-label-import "
+#         "{input} "
+#         "{params.resource_dir}/FreeSurferAllLut.txt "
+#         "{params.conversion_dir}/aseg_space-MNI152NonLin_res-2mm_label.nii.gz "
+#         "-drop-unused-labels && "
+#         "wb_command -volume-resample "
+#         "{params.conversion_dir}/aseg_space-MNI152NonLin_res-2mm_label.nii.gz "
+#         "{params.resource_dir}/MNI152_T1_2mm.nii.gz "
+#         "ENCLOSING_VOXEL "
+#         "{output}"
 
-rule convert_aparc_to_gifti:
-    input:
-        lh=os.path.join(
-            outdir,
-            "fmriprep",
-            "sourcedata",
-            "freesurfer",
-            "sub-{subid}",
-            "label",
-            "lh.aparc.annot"
-        ),
-        rh=os.path.join(
-            outdir,
-            "fmriprep",
-            "sourcedata",
-            "freesurfer",
-            "sub-{subid}",
-            "label",
-            "rh.aparc.annot"
-        )
-    params:
-        conversion_dir=os.path.join(
-            outdir,
-            "conversion",
-            "sub-{subid}",
-            "cortical"
-        ),
-        resource_dir=resourcedir,
-        fs_dir=os.path.join(
-            outdir,
-            "fmriprep",
-            "sourcedata",
-            "freesurfer"
-        )
-    threads: 8
-    resources:
-        mem='1G',
-        time='1:00:00'
-    output:
-        lh=os.path.join(
-            outdir,
-            "conversion",
-            "sub-{subid}",
-            "cortical",
-            "lh.aparc.gii"
-        ),
-        rh=os.path.join(
-            outdir,
-            "conversion",
-            "sub-{subid}",
-            "cortical",
-            "rh.aparc.gii"
-        )
-    container:
-        config["containers"]["freesurfer"]
-    shell:
-        "export FS_LICENSE={params.resource_dir}/license.txt && "
-        "mris_convert --annot {input.lh} "
-        "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.midthickness "
-        "{output.lh} && "
-        "mris_convert --annot {input.rh} "
-        "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.midthickness "
-        "{output.rh}"
+# rule convert_aparc_to_gifti:
+#     input:
+#         lh=os.path.join(
+#             outdir,
+#             "fmriprep",
+#             "sourcedata",
+#             "freesurfer",
+#             "sub-{subid}",
+#             "label",
+#             "lh.aparc.annot"
+#         ),
+#         rh=os.path.join(
+#             outdir,
+#             "fmriprep",
+#             "sourcedata",
+#             "freesurfer",
+#             "sub-{subid}",
+#             "label",
+#             "rh.aparc.annot"
+#         )
+#     params:
+#         conversion_dir=os.path.join(
+#             outdir,
+#             "conversion",
+#             "sub-{subid}",
+#             "cortical"
+#         ),
+#         resource_dir=resourcedir,
+#         fs_dir=os.path.join(
+#             outdir,
+#             "fmriprep",
+#             "sourcedata",
+#             "freesurfer"
+#         )
+#     threads: 8
+#     resources:
+#         mem='1G',
+#         time='1:00:00'
+#     output:
+#         lh=os.path.join(
+#             outdir,
+#             "conversion",
+#             "sub-{subid}",
+#             "cortical",
+#             "lh.aparc.gii"
+#         ),
+#         rh=os.path.join(
+#             outdir,
+#             "conversion",
+#             "sub-{subid}",
+#             "cortical",
+#             "rh.aparc.gii"
+#         )
+#     container:
+#         config["containers"]["freesurfer"]
+#     shell:
+#         "export FS_LICENSE={params.resource_dir}/license.txt && "
+#         "mris_convert --annot {input.lh} "
+#         "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.midthickness "
+#         "{output.lh} && "
+#         "mris_convert --annot {input.rh} "
+#         "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.midthickness "
+#         "{output.rh}"
 
-rule resample_cortical_labels:
-    input:
-        lh=os.path.join(
-            outdir,
-            "conversion",
-            "sub-{subid}",
-            "cortical",
-            "lh.aparc.gii"
-        ),
-        rh=os.path.join(
-            outdir,
-            "conversion",
-            "sub-{subid}",
-            "cortical",
-            "rh.aparc.gii"
-        )
-    params:
-        conversion_dir=os.path.join(
-            outdir,
-            "conversion",
-            "sub-{subid}",
-            "cortical"
-        ),
-        resource_dir=resourcedir,
-        fs_dir=os.path.join(
-            outdir,
-            "fmriprep",
-            "sourcedata",
-            "freesurfer"
-        ),
-        workflow_dir=workflowdir
-    threads: 8
-    resources:
-        mem='4G',
-        time='1:00:00'
-    output:
-        os.path.join(
-            outdir,
-            "conversion",
-            "sub-{subid}",
-            "cortical",
-            "aparc.rh.32k_fs_LR.label.gii"
-        ),
-        os.path.join(
-            outdir,
-            "conversion",
-            "sub-{subid}",
-            "cortical",
-            "aparc.lh.32k_fs_LR.label.gii"
-        )
-    container:
-        config["containers"]["wb_command"]
-    shell:
-        "mkdir -p {params.conversion_dir} && "
+# rule resample_cortical_labels:
+#     input:
+#         lh=os.path.join(
+#             outdir,
+#             "conversion",
+#             "sub-{subid}",
+#             "cortical",
+#             "lh.aparc.gii"
+#         ),
+#         rh=os.path.join(
+#             outdir,
+#             "conversion",
+#             "sub-{subid}",
+#             "cortical",
+#             "rh.aparc.gii"
+#         )
+#     params:
+#         conversion_dir=os.path.join(
+#             outdir,
+#             "conversion",
+#             "sub-{subid}",
+#             "cortical"
+#         ),
+#         resource_dir=resourcedir,
+#         fs_dir=os.path.join(
+#             outdir,
+#             "fmriprep",
+#             "sourcedata",
+#             "freesurfer"
+#         ),
+#         workflow_dir=workflowdir
+#     threads: 8
+#     resources:
+#         mem='4G',
+#         time='1:00:00'
+#     output:
+#         os.path.join(
+#             outdir,
+#             "conversion",
+#             "sub-{subid}",
+#             "cortical",
+#             "aparc.rh.32k_fs_LR.label.gii"
+#         ),
+#         os.path.join(
+#             outdir,
+#             "conversion",
+#             "sub-{subid}",
+#             "cortical",
+#             "aparc.lh.32k_fs_LR.label.gii"
+#         )
+#     container:
+#         config["containers"]["wb_command"]
+#     shell:
+#         "mkdir -p {params.conversion_dir} && "
 
-        "{params.workflow_dir}/scripts/wb_shortcuts.sh -freesurfer-resample-prep "
-        "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.white "
-        "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.pial "
-        "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.sphere.reg "
-        "{params.resource_dir}/spheres/fs_LR-deformed_to-fsaverage.L.sphere.32k_fs_LR.surf.gii "
-        "{params.conversion_dir}/lh.midthickness.surf.gii "
-        "{params.conversion_dir}/lh.midthickness.32k_fs_LR.surf.gii "
-        "{params.conversion_dir}/lh.sphere.reg.surf.gii && "
+#         "{params.workflow_dir}/scripts/wb_shortcuts.sh -freesurfer-resample-prep "
+#         "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.white "
+#         "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.pial "
+#         "{params.fs_dir}/sub-{wildcards.subid}/surf/lh.sphere.reg "
+#         "{params.resource_dir}/spheres/fs_LR-deformed_to-fsaverage.L.sphere.32k_fs_LR.surf.gii "
+#         "{params.conversion_dir}/lh.midthickness.surf.gii "
+#         "{params.conversion_dir}/lh.midthickness.32k_fs_LR.surf.gii "
+#         "{params.conversion_dir}/lh.sphere.reg.surf.gii && "
 
-        "{params.workflow_dir}/scripts/wb_shortcuts.sh -freesurfer-resample-prep "
-        "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.white "
-        "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.pial "
-        "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.sphere.reg "
-        "{params.resource_dir}/spheres/fs_LR-deformed_to-fsaverage.R.sphere.32k_fs_LR.surf.gii "
-        "{params.conversion_dir}/rh.midthickness.surf.gii "
-        "{params.conversion_dir}/rh.midthickness.32k_fs_LR.surf.gii "
-        "{params.conversion_dir}/rh.sphere.reg.surf.gii && "
+#         "{params.workflow_dir}/scripts/wb_shortcuts.sh -freesurfer-resample-prep "
+#         "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.white "
+#         "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.pial "
+#         "{params.fs_dir}/sub-{wildcards.subid}/surf/rh.sphere.reg "
+#         "{params.resource_dir}/spheres/fs_LR-deformed_to-fsaverage.R.sphere.32k_fs_LR.surf.gii "
+#         "{params.conversion_dir}/rh.midthickness.surf.gii "
+#         "{params.conversion_dir}/rh.midthickness.32k_fs_LR.surf.gii "
+#         "{params.conversion_dir}/rh.sphere.reg.surf.gii && "
 
-        "wb_command -label-resample "
-        "{input.lh} "
-        "{params.conversion_dir}/lh.sphere.reg.surf.gii "
-        "{params.resource_dir}/spheres/fs_LR-deformed_to-fsaverage.L.sphere.32k_fs_LR.surf.gii "
-        "ADAP_BARY_AREA "
-        "{params.conversion_dir}/aparc.lh.32k_fs_LR.label.gii "
-        "-area-surfs "
-        "{params.conversion_dir}/lh.midthickness.surf.gii "
-        "{params.conversion_dir}/lh.midthickness.32k_fs_LR.surf.gii && "
+#         "wb_command -label-resample "
+#         "{input.lh} "
+#         "{params.conversion_dir}/lh.sphere.reg.surf.gii "
+#         "{params.resource_dir}/spheres/fs_LR-deformed_to-fsaverage.L.sphere.32k_fs_LR.surf.gii "
+#         "ADAP_BARY_AREA "
+#         "{params.conversion_dir}/aparc.lh.32k_fs_LR.label.gii "
+#         "-area-surfs "
+#         "{params.conversion_dir}/lh.midthickness.surf.gii "
+#         "{params.conversion_dir}/lh.midthickness.32k_fs_LR.surf.gii && "
 
-        "wb_command -label-resample "
-        "{input.rh} "
-        "{params.conversion_dir}/rh.sphere.reg.surf.gii "
-        "{params.resource_dir}/spheres/fs_LR-deformed_to-fsaverage.R.sphere.32k_fs_LR.surf.gii "
-        "ADAP_BARY_AREA "
-        "{params.conversion_dir}/aparc.rh.32k_fs_LR.label.gii "
-        "-area-surfs "
-        "{params.conversion_dir}/rh.midthickness.surf.gii "
-        "{params.conversion_dir}/rh.midthickness.32k_fs_LR.surf.gii"
+#         "wb_command -label-resample "
+#         "{input.rh} "
+#         "{params.conversion_dir}/rh.sphere.reg.surf.gii "
+#         "{params.resource_dir}/spheres/fs_LR-deformed_to-fsaverage.R.sphere.32k_fs_LR.surf.gii "
+#         "ADAP_BARY_AREA "
+#         "{params.conversion_dir}/aparc.rh.32k_fs_LR.label.gii "
+#         "-area-surfs "
+#         "{params.conversion_dir}/rh.midthickness.surf.gii "
+#         "{params.conversion_dir}/rh.midthickness.32k_fs_LR.surf.gii"
 
 # rule generate_remap:
 #     input:
