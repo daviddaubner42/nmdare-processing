@@ -49,8 +49,9 @@ endfiles = [
     )
 ]
 
-subids = [i[4:] for i in os.listdir(os.path.join(rawdir, "derivatives", "fmriprep", "sourcedata", "freesurfer")) if i.startswith("sub-")]
+# subids = [i[4:] for i in os.listdir(os.path.join(rawdir, "derivatives", "fmriprep", "sourcedata", "freesurfer")) if i.startswith("sub-")]
 # subids = ["LEGK010"]
+subids = [i[4:] for i in os.listdir(rawdir) if i.startswith("sub-")]
 
 
 rule all:
