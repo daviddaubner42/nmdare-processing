@@ -117,7 +117,7 @@ rule fmriprep:
     container:
         config["containers"]["fmriprep"]
     shell:
-        "rm -rf {params.out_dir}/freesurfer/sub-{wildcards.subid} && "
+        "rm -rf {params.out_dir}/fmriprep/sourcedatas/freesurfer/sub-{wildcards.subid} && "
         "fmriprep "
         "{params.bids_dir} {params.out_dir}/fmriprep participant "
         "--fs-license-file {params.fs_license_dir}/license.txt "
@@ -128,8 +128,7 @@ rule fmriprep:
         "--skip-bids-validation "
         "--nthreads 16 "
         "--ignore t2w "
-        "--omp-nthreads 16 && "
-        "mv {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold.nii.gz {params.out_dir}/fmriprep/sub-{wildcards.subid}/func/sub-{wildcards.subid}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
+        "--omp-nthreads 16"
 
 rule register_subcortical_segmentation:
     input:
