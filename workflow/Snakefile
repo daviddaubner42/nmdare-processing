@@ -117,7 +117,7 @@ rule fmriprep:
     container:
         config["containers"]["fmriprep"]
     shell:
-        "rm -rf {params.out_dir}/fmriprep/sourcedatas/freesurfer/sub-{wildcards.subid} && "
+        "rm -rf {params.out_dir}/fmriprep/sourcedata/freesurfer/sub-{wildcards.subid} && "
         "fmriprep "
         "{params.bids_dir} {params.out_dir}/fmriprep participant "
         "--fs-license-file {params.fs_license_dir}/license.txt "
