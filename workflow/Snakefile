@@ -35,13 +35,6 @@ endfiles = [
     # )
     os.path.join(
         outdir,
-        "freesurfer",
-        "sub-{subid}",
-        "surf",
-        "rh.thickness"
-    ),
-    os.path.join(
-        outdir,
         "fmriprep",
         "sub-{subid}",
         "func",
